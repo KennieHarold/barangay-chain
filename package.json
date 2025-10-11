@@ -2,6 +2,10 @@
   "name": "barangay-chain",
   "version": "1.0.0",
   "type": "module",
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "hardhat build"
+  },
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^3.0.3",
     "@nomicfoundation/hardhat-toolbox-mocha-ethers": "^3.0.0",
@@ -15,5 +19,8 @@
     "hardhat": "^3.0.7",
     "mocha": "^11.7.4",
     "typescript": "~5.8.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0"
   }
 }
