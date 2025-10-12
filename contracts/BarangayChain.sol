@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+
 import "./interfaces/IBarangayChain.sol";
 import "./interfaces/ITreasury.sol";
 
@@ -13,19 +15,22 @@ contract BarangayChain is IBarangayChain, AccessControl {
 
     uint8 public constant QUORUM_VOTES = 5;
 
-    uint256 public constant BASIS_POINT = 10000;
-
     IERC20 public immutable PAYMENT_TOKEN;
 
+    IERC721 public immutable CITIZEN_NFT;
+
     ITreasury public immutable TREASURY;
+
+    uint256 public constant BASIS_POINT = 10000;
 
     uint256 projectCounter;
 
     mapping(uint256 => Project) public projects;
 
-    constructor(ITreasury treasury_) {
+    constructor(ITreasury treasury_, IERC721 citizenNFT) {
         TREASURY = treasury_;
         PAYMENT_TOKEN = IERC20(treasury_.TREASURY_TOKEN());
+        CITIZEN_NFT = citizenNFT;
     }
 
     modifier onlyOfficial() {
@@ -40,6 +45,14 @@ contract BarangayChain is IBarangayChain, AccessControl {
         require(
             hasRole(VENDOR_ROLE, msg.sender),
             "BarangayChain: Not a vendor"
+        );
+        _;
+    }
+
+    modifier onlyCitizen() {
+        require(
+            CITIZEN_NFT.balanceOf(msg.sender) > 0,
+            "BarangayChain: Not a citizen"
         );
         _;
     }
@@ -102,7 +115,10 @@ contract BarangayChain is IBarangayChain, AccessControl {
         milestone.metadataURI = uri;
     }
 
-    function verifyMilestone(uint256 projectId, bool status) external {
+    function verifyMilestone(
+        uint256 projectId,
+        bool status
+    ) external onlyCitizen {
         Project storage project = projects[projectId];
 
         require(
