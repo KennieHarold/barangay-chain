@@ -61,7 +61,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
         address proposer,
         address vendor,
         uint256 budget,
-        Category category,
+        ITreasury.Category category,
         uint64 startDate,
         uint64 endDate,
         string memory uri,
@@ -93,8 +93,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
         }
 
         uint256 advancePayment = (budget * releaseBpsTemplate[0]) / BASIS_POINT;
-
-        TREASURY.releaseFunds(vendor, advancePayment);
+        TREASURY.releaseFunds(vendor, advancePayment, category);
     }
 
     function submitMilestone(
@@ -182,7 +181,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
             payment = (project.budget * nextMilestone.releaseBps) / BASIS_POINT;
         }
         if (payment > 0) {
-            TREASURY.releaseFunds(project.vendor, payment);
+            TREASURY.releaseFunds(project.vendor, payment, project.category);
         }
     }
 

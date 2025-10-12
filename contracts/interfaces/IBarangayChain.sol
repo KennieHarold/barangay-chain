@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
-import "../types/CategoryEnum.sol";
+import "./ITreasury.sol";
 
 interface IBarangayChain {
     enum MilestoneStatus {
@@ -14,7 +14,7 @@ interface IBarangayChain {
         address proposer;
         address vendor;
         uint256 budget;
-        Category category;
+        ITreasury.Category category;
         uint64 startDate;
         uint64 endDate;
         string metadataURI;
