@@ -94,6 +94,17 @@ contract BarangayChain is IBarangayChain, AccessControl {
 
         uint256 advancePayment = (budget * releaseBpsTemplate[0]) / BASIS_POINT;
         TREASURY.releaseFunds(vendor, advancePayment, category);
+
+        emit ProjectCreated(
+            projectCounter,
+            proposer,
+            vendor,
+            budget,
+            category,
+            startDate,
+            endDate,
+            uri
+        );
     }
 
     function submitMilestone(
@@ -112,6 +123,8 @@ contract BarangayChain is IBarangayChain, AccessControl {
 
         milestone.status = MilestoneStatus.ForVerification;
         milestone.metadataURI = uri;
+
+        emit MilestoneSubmitted(projectId, index, msg.sender, uri);
     }
 
     function verifyMilestone(
@@ -133,6 +146,15 @@ contract BarangayChain is IBarangayChain, AccessControl {
         } else {
             milestone.downvotes = milestone.downvotes + 1;
         }
+
+        emit MilestoneVoted(
+            projectId,
+            index,
+            msg.sender,
+            status,
+            milestone.upvotes,
+            milestone.downvotes
+        );
     }
 
     function completeMilestone(uint256 projectId) external onlyOfficial {
@@ -183,6 +205,13 @@ contract BarangayChain is IBarangayChain, AccessControl {
         if (payment > 0) {
             TREASURY.releaseFunds(project.vendor, payment, project.category);
         }
+
+        emit MilestoneCompleted(
+            projectId,
+            currentMilestone,
+            payment,
+            isProjectCompleted
+        );
     }
 
     function isWithinTimeframe(

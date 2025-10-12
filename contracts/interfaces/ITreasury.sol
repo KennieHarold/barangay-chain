@@ -2,6 +2,20 @@
 pragma solidity ^0.8.28;
 
 interface ITreasury {
+    // Events
+    event TreasuryDeposit(
+        address indexed sender,
+        uint256 amount,
+        string source
+    );
+
+    event FundsReleased(
+        address indexed to,
+        uint256 amount,
+        Category category
+    );
+
+    // Enums
     enum Category {
         Infrastructure,
         Health,

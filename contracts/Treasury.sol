@@ -42,13 +42,6 @@ contract Treasury is ITreasury {
         _;
     }
 
-    event TreasuryDeposit(
-        address indexed sender,
-        uint256 amount,
-        string source
-    );
-    event FundsReleased(address indexed to, uint256 amount, Category category);
-
     function releaseFunds(
         address to,
         uint256 amount,
