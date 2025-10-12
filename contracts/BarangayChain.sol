@@ -9,20 +9,18 @@ import "./interfaces/IBarangayChain.sol";
 import "./interfaces/ITreasury.sol";
 
 contract BarangayChain is IBarangayChain, AccessControl {
+    // Constants
     bytes32 public constant OFFICIAL_ROLE = keccak256("OFFICIAL_ROLE");
-
     bytes32 public constant VENDOR_ROLE = keccak256("VENDOR_ROLE");
-
     uint8 public constant QUORUM_VOTES = 5;
-
-    IERC20 public immutable PAYMENT_TOKEN;
-
-    IERC721 public immutable CITIZEN_NFT;
-
-    ITreasury public immutable TREASURY;
-
     uint256 public constant BASIS_POINT = 10000;
 
+    // Immutables
+    IERC20 public immutable PAYMENT_TOKEN;
+    IERC721 public immutable CITIZEN_NFT;
+    ITreasury public immutable TREASURY;
+
+    // State variables
     uint256 projectCounter;
 
     mapping(uint256 => Project) public projects;
@@ -72,22 +70,22 @@ contract BarangayChain is IBarangayChain, AccessControl {
         Project storage project = projects[projectCounter];
         project.proposer = proposer;
         project.vendor = vendor;
-        project.budget = budget;
-        project.category = category;
         project.startDate = startDate;
         project.endDate = endDate;
-        project.metadataURI = uri;
+        project.budget = budget;
+        project.category = category;
         project.currentMilestone = 0;
+        project.metadataURI = uri;
 
         for (uint8 i = 0; i < releaseBpsTemplate.length; i++) {
             project.milestones.push(
                 Milestone({
-                    index: i,
-                    releaseBps: releaseBpsTemplate[i],
-                    metadataURI: "",
-                    status: MilestoneStatus.Pending,
                     upvotes: 0,
-                    downvotes: 0
+                    downvotes: 0,
+                    metadataURI: "",
+                    releaseBps: releaseBpsTemplate[i],
+                    index: i,
+                    status: MilestoneStatus.Pending
                 })
             );
         }

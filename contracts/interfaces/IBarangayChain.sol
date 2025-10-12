@@ -49,22 +49,22 @@ interface IBarangayChain {
     struct Project {
         address proposer;
         address vendor;
-        uint256 budget;
-        ITreasury.Category category;
         uint64 startDate;
         uint64 endDate;
-        string metadataURI;
+        uint256 budget;
+        ITreasury.Category category;
         uint8 currentMilestone;
+        string metadataURI;
         Milestone[] milestones;
     }
 
     struct Milestone {
-        uint8 index;
-        uint16 releaseBps;
-        string metadataURI;
-        MilestoneStatus status;
         uint256 upvotes;
         uint256 downvotes;
+        string metadataURI;
+        uint16 releaseBps;
+        uint8 index;
+        MilestoneStatus status;
     }
 
     struct MilestonePayload {

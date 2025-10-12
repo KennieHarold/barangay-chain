@@ -9,14 +9,15 @@ import "./interfaces/ITreasury.sol";
 contract Treasury is ITreasury {
     using SafeERC20 for IERC20;
 
+    // Immutables
     address public immutable BARANGAY_CHAIN_ADDRESS;
-
     address public immutable TREASURY_TOKEN;
 
+    // Constants
     uint256 public constant BASIS_POINT = 10000;
 
+    // State variables
     mapping(Category => uint256) public expenses;
-
     mapping(Category => uint16) public allocations;
 
     constructor(address barangayChainAddress, address treasuryToken) {
