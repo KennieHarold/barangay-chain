@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { network } from "hardhat";
 import {
   keccak256,
+  parseEther,
   toUtf8Bytes,
   ZeroAddress,
   ZeroHash,
@@ -44,24 +45,32 @@ describe("BarangayChain", function () {
 
     // Deploy Treasury Token
     const TreasuryTokenFactory = await ethers.getContractFactory("MockERC20");
-    treasuryToken = await TreasuryTokenFactory.deploy("Tether USD", "USDT", 6);
+    treasuryToken = await TreasuryTokenFactory.deploy(
+      "Tether USD",
+      "USDT",
+      parseEther(String(1_000_000_000_000)) // 1 trillion
+    );
 
     // Deploy Treasury
     const TreasuryFactory = await ethers.getContractFactory("Treasury");
-    treasury = await TreasuryFactory.deploy(
-      ZeroAddress,
-      await treasuryToken.getAddress()
-    );
+    treasury = await TreasuryFactory.deploy(admin, ZeroAddress, treasuryToken);
 
     // Deploy BarangayChain
     const BarangayChainFactory = await ethers.getContractFactory(
       "BarangayChain"
     );
-    barangayChain = await BarangayChainFactory.deploy(
-      await treasury.getAddress(),
-      await citizenNFT.getAddress()
+    barangayChain = await BarangayChainFactory.deploy(treasury, citizenNFT);
+    await treasury.setProtocol(barangayChain);
+
+    // Fund treasury
+    await treasuryToken.connect(admin).transfer(
+      treasury,
+      parseEther(String(1_000_000_000)) // 1 billion
     );
-    await treasury.setProtocol(await barangayChain.getAddress());
+
+    // Grant roles
+    await barangayChain.grantRole(OFFICIAL_ROLE, official);
+    await barangayChain.grantRole(VENDOR_ROLE, vendor);
   });
 
   describe("Deployment", function () {
@@ -74,15 +83,9 @@ describe("BarangayChain", function () {
     });
 
     it("should deploy with correct immutables", async function () {
-      expect(await barangayChain.PAYMENT_TOKEN()).to.be.eq(
-        await treasuryToken.getAddress()
-      );
-      expect(await barangayChain.CITIZEN_NFT()).to.be.eq(
-        await citizenNFT.getAddress()
-      );
-      expect(await barangayChain.TREASURY()).to.be.eq(
-        await treasury.getAddress()
-      );
+      expect(await barangayChain.PAYMENT_TOKEN()).to.be.eq(treasuryToken);
+      expect(await barangayChain.CITIZEN_NFT()).to.be.eq(citizenNFT);
+      expect(await barangayChain.TREASURY()).to.be.eq(treasury);
     });
 
     it("should have empty projects", async function () {
@@ -97,6 +100,42 @@ describe("BarangayChain", function () {
         0n,
         "",
       ]);
+    });
+  });
+
+  describe("Project Creation", function () {
+    let startDate: number;
+    let endDate: number;
+
+    beforeEach(function () {
+      startDate = Math.floor(Date.now() / 1000);
+      endDate = startDate + 1825 * 24 * 60 * 60; // 5 years from now
+    });
+
+    it("should successfully create project", async function () {
+      await expect(
+        barangayChain.connect(official).createProject(
+          official,
+          vendor,
+          parseEther(String(1_000_000)), // 1 million
+          0n,
+          BigInt(startDate),
+          BigInt(endDate),
+          "ipfs://test-ipfs-hash",
+          [30n, 60n, 10n]
+        )
+      )
+        .to.emit(barangayChain, "ProjectCreated")
+        .withArgs(
+          1,
+          official,
+          vendor,
+          parseEther(String(1_000_000)),
+          0n,
+          BigInt(startDate),
+          BigInt(endDate),
+          "ipfs://test-ipfs-hash"
+        );
     });
   });
 });

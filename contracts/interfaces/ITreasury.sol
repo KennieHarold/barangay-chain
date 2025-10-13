@@ -4,9 +4,10 @@ pragma solidity ^0.8.28;
 interface ITreasury {
     // Events
     event TreasuryDeposit(
-        address indexed sender,
+        address indexed operator,
+        address indexed from,
         uint256 amount,
-        string source
+        bytes data
     );
 
     event FundsReleased(address indexed to, uint256 amount, Category category);

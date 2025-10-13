@@ -3,10 +3,12 @@ pragma solidity ^0.8.28;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IERC1363Receiver} from "@openzeppelin/contracts/interfaces/IERC1363Receiver.sol";
 
 import "./interfaces/ITreasury.sol";
 
-contract Treasury is ITreasury {
+contract Treasury is ITreasury, IERC1363Receiver, Ownable {
     using SafeERC20 for IERC20;
 
     // Immutables
@@ -21,7 +23,11 @@ contract Treasury is ITreasury {
     mapping(Category => uint256) public expenses;
     mapping(Category => uint16) public allocations;
 
-    constructor(address protocol_, address treasuryToken) {
+    constructor(
+        address fundManager,
+        address protocol_,
+        address treasuryToken
+    ) Ownable(fundManager) {
         protocol = protocol_;
         TREASURY_TOKEN = treasuryToken;
 
@@ -78,7 +84,13 @@ contract Treasury is ITreasury {
         emit SetProtocol(protocol_);
     }
 
-    receive() external payable {
-        emit TreasuryDeposit(msg.sender, msg.value, "Treasury: Funds received");
+    function onTransferReceived(
+        address operator,
+        address from,
+        uint256 value,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        emit TreasuryDeposit(operator, from, value, data);
+        return IERC1363Receiver.onTransferReceived.selector;
     }
 }

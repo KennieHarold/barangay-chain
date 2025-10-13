@@ -29,6 +29,8 @@ contract BarangayChain is IBarangayChain, AccessControl {
         TREASURY = treasury_;
         PAYMENT_TOKEN = IERC20(treasury_.TREASURY_TOKEN());
         CITIZEN_NFT = citizenNFT;
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     modifier onlyOfficial() {
