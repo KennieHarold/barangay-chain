@@ -74,10 +74,37 @@ describe("BarangayChain", function () {
     // Grant roles
     await barangayChain.grantRole(OFFICIAL_ROLE, official);
     await barangayChain.grantRole(VENDOR_ROLE, vendor);
+
+    // Mint CitizenNFT
+    await citizenNFT.safeMint(alice);
   });
 
   async function timeTravel(seconds: number) {
     await networkHelpers.time.increase(seconds);
+  }
+
+  async function createProjectDefault() {
+    const startDate = await networkHelpers.time.latest();
+    const endDate = startDate + 1825 * 24 * 60 * 60; // 5 years from now
+
+    const tx = await barangayChain.connect(official).createProject(
+      official,
+      vendor,
+      parseEther(String(1_000_000)), // 1 million
+      0n,
+      BigInt(startDate),
+      BigInt(endDate),
+      "ipfs://test-ipfs-hash",
+      [3000n, 6000n, 1000n]
+    );
+
+    return { tx, startDate, endDate };
+  }
+
+  async function submitMilestone(projectId: bigint) {
+    await barangayChain
+      .connect(vendor)
+      .submitMilestone(projectId, "ipfs://test-ipfs-hash");
   }
 
   describe("Deployment", function () {
@@ -108,14 +135,18 @@ describe("BarangayChain", function () {
         "",
       ]);
     });
+
+    it("should mint CitizenNFT", async function () {
+      expect(await citizenNFT.ownerOf(0)).to.be.eq(alice);
+    });
   });
 
   describe("Project Creation", function () {
     let startDate: number;
     let endDate: number;
 
-    beforeEach(function () {
-      startDate = Math.floor(Date.now() / 1000);
+    beforeEach(async function () {
+      startDate = await networkHelpers.time.latest();
       endDate = startDate + 1825 * 24 * 60 * 60; // 5 years from now
     });
 
@@ -180,7 +211,6 @@ describe("BarangayChain", function () {
         1: [0n, 0n, "", 6000n, 1n, 0n],
         2: [0n, 0n, "", 1000n, 2n, 0n],
       };
-
       expect(await barangayChain.getProjectMilestone(1n, 0n)).to.be.eqls(
         milestones[0]
       );
@@ -194,26 +224,11 @@ describe("BarangayChain", function () {
   });
 
   describe("Milestone Submission", async function () {
-    let startDate: number;
-    let endDate: number;
-
     beforeEach(async function () {
-      startDate = Math.floor(Date.now() / 1000);
-      endDate = startDate + 1825 * 24 * 60 * 60; // 5 years from now
-
-      await barangayChain.connect(official).createProject(
-        official,
-        vendor,
-        parseEther(String(1_000_000)), // 1 million
-        0n,
-        BigInt(startDate),
-        BigInt(endDate),
-        "ipfs://test-ipfs-hash",
-        [3000n, 6000n, 1000n]
-      );
+      await createProjectDefault();
     });
 
-    it("should revert when non-vendor creates milestone", async function () {
+    it("should revert when non-vendor submits milestone", async function () {
       await expect(
         barangayChain
           .connect(alice)
@@ -221,7 +236,7 @@ describe("BarangayChain", function () {
       ).to.be.rejectedWith("BarangayChain: Not a vendor");
     });
 
-    it("should create milestone successfully", async function () {
+    it("should submit milestone successfully", async function () {
       await expect(
         barangayChain
           .connect(vendor)
@@ -231,15 +246,63 @@ describe("BarangayChain", function () {
         .withArgs(1n, 0n, vendor, "ipfs://test-ipfs-hash");
     });
 
+    it("should revert when submitting another milestone", async function () {
+      await submitMilestone(1n);
+      await expect(
+        barangayChain
+          .connect(vendor)
+          .submitMilestone(1n, "ipfs://test-ipfs-hash")
+      ).to.be.rejectedWith("BarangayChain::submitMilestone: Invalid status");
+    });
+
     it("should revert when project is already due", async function () {
       await timeTravel(1825 * 24 * 60 * 60 + 1);
       await expect(
         barangayChain
           .connect(vendor)
           .submitMilestone(1n, "ipfs://test-ipfs-hash")
-      ).to.be.rejectedWith(
-        "BarangayChain::submitMilestone: Not allowed outside timeframe"
+      ).to.be.rejectedWith("BarangayChain::submitMilestone: Already due");
+    });
+  });
+
+  describe("Milestone Verification", async function () {
+    beforeEach(async function () {
+      await createProjectDefault();
+      await submitMilestone(1n);
+    });
+
+    it("should revert when verifying milestone by a non-citizen", async function () {
+      await expect(
+        barangayChain.connect(bob).verifyMilestone(1n, true)
+      ).to.be.rejectedWith("BarangayChain: Not a citizen");
+    });
+
+    it("should verify milestone", async function () {
+      await expect(barangayChain.connect(alice).verifyMilestone(1n, true))
+        .to.emit(barangayChain, "MilestoneVoted")
+        .withArgs(1n, 0n, alice, true, 1n, 0n);
+
+      expect(await barangayChain.getUserMilestoneVerification(1n, 0n)).to.be
+        .true;
+
+      const milestone = [1n, 0n, "ipfs://test-ipfs-hash", 3000n, 0n, 1n];
+      expect(await barangayChain.getProjectMilestone(1n, 0n)).to.be.eqls(
+        milestone
       );
+    });
+
+    it("should not allow double verification", async function () {
+      await barangayChain.connect(alice).verifyMilestone(1n, true);
+      await expect(
+        barangayChain.connect(alice).verifyMilestone(1n, true)
+      ).to.be.rejectedWith("BarangayChain::verifyMilestone: Already verified");
+    });
+
+    it("should revert when project is already due", async function () {
+      await timeTravel(1825 * 24 * 60 * 60 + 1);
+      await expect(
+        barangayChain.connect(alice).verifyMilestone(1n, true)
+      ).to.be.rejectedWith("BarangayChain::verifyMilestone: Already due");
     });
   });
 });

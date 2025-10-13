@@ -23,7 +23,9 @@ contract BarangayChain is IBarangayChain, AccessControl {
     // State variables
     uint256 public projectCounter;
 
-    mapping(uint256 => Project) public projects;
+    mapping(uint256 projectId => Project) public projects;
+    mapping(uint256 projectId => mapping(uint8 milestoneIdx => bool flag))
+        private userVerifications;
 
     constructor(ITreasury treasury_, IERC721 citizenNFT) {
         TREASURY = treasury_;
@@ -115,11 +117,16 @@ contract BarangayChain is IBarangayChain, AccessControl {
 
         require(
             isWithinTimeframe(project.startDate, project.endDate),
-            "BarangayChain::submitMilestone: Not allowed outside timeframe"
+            "BarangayChain::submitMilestone: Already due"
         );
 
         uint8 index = project.currentMilestone;
         Milestone storage milestone = project.milestones[index];
+
+        require(
+            milestone.status == MilestoneStatus.Pending,
+            "BarangayChain::submitMilestone: Invalid status"
+        );
 
         milestone.status = MilestoneStatus.ForVerification;
         milestone.metadataURI = uri;
@@ -135,17 +142,28 @@ contract BarangayChain is IBarangayChain, AccessControl {
 
         require(
             isWithinTimeframe(project.startDate, project.endDate),
-            "BarangayChain::verifyMilestone: Not Allowed outside timeframe"
+            "BarangayChain::verifyMilestone: Already due"
         );
 
         uint8 index = project.currentMilestone;
         Milestone storage milestone = project.milestones[index];
+
+        require(
+            milestone.status == MilestoneStatus.ForVerification,
+            "BarangayChain::verifyMilestone: Invalid status"
+        );
+        require(
+            !userVerifications[projectId][index],
+            "BarangayChain::verifyMilestone: Already verified"
+        );
 
         if (status) {
             milestone.upvotes = milestone.upvotes + 1;
         } else {
             milestone.downvotes = milestone.downvotes + 1;
         }
+
+        userVerifications[projectId][index] = status;
 
         emit MilestoneVoted(
             projectId,
@@ -162,7 +180,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
 
         require(
             isWithinTimeframe(project.startDate, project.endDate),
-            "BarangayChain::completeMilestone: Not Allowed outside timeframe"
+            "BarangayChain::completeMilestone: Already due"
         );
 
         uint8 currentMilestone = project.currentMilestone;
@@ -216,10 +234,17 @@ contract BarangayChain is IBarangayChain, AccessControl {
 
     function getProjectMilestone(
         uint256 projectId,
-        uint256 milestoneIdx
+        uint8 milestoneIdx
     ) external view returns (Milestone memory) {
         Project memory project = projects[projectId];
         return project.milestones[milestoneIdx];
+    }
+
+    function getUserMilestoneVerification(
+        uint256 projectId,
+        uint8 milestoneIdx
+    ) external view returns (bool) {
+        return userVerifications[projectId][milestoneIdx];
     }
 
     function isWithinTimeframe(
