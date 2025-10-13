@@ -115,7 +115,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
 
         require(
             isWithinTimeframe(project.startDate, project.endDate),
-            "BarangayChain::submitMilestone: Not Allowed outside timeframe"
+            "BarangayChain::submitMilestone: Not allowed outside timeframe"
         );
 
         uint8 index = project.currentMilestone;
@@ -212,6 +212,14 @@ contract BarangayChain is IBarangayChain, AccessControl {
             payment,
             isProjectCompleted
         );
+    }
+
+    function getProjectMilestone(
+        uint256 projectId,
+        uint256 milestoneIdx
+    ) external view returns (Milestone memory) {
+        Project memory project = projects[projectId];
+        return project.milestones[milestoneIdx];
     }
 
     function isWithinTimeframe(
