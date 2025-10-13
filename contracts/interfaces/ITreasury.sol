@@ -9,11 +9,9 @@ interface ITreasury {
         string source
     );
 
-    event FundsReleased(
-        address indexed to,
-        uint256 amount,
-        Category category
-    );
+    event FundsReleased(address indexed to, uint256 amount, Category category);
+
+    event SetProtocol(address indexed newProtocolAddress);
 
     // Enums
     enum Category {

@@ -21,7 +21,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
     ITreasury public immutable TREASURY;
 
     // State variables
-    uint256 projectCounter;
+    uint256 public projectCounter;
 
     mapping(uint256 => Project) public projects;
 

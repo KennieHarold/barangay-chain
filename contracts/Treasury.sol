@@ -10,18 +10,19 @@ contract Treasury is ITreasury {
     using SafeERC20 for IERC20;
 
     // Immutables
-    address public immutable BARANGAY_CHAIN_ADDRESS;
     address public immutable TREASURY_TOKEN;
 
     // Constants
     uint256 public constant BASIS_POINT = 10000;
 
     // State variables
+    address public protocol;
+
     mapping(Category => uint256) public expenses;
     mapping(Category => uint16) public allocations;
 
-    constructor(address barangayChainAddress, address treasuryToken) {
-        BARANGAY_CHAIN_ADDRESS = barangayChainAddress;
+    constructor(address protocol_, address treasuryToken) {
+        protocol = protocol_;
         TREASURY_TOKEN = treasuryToken;
 
         // Setup allocations
@@ -35,9 +36,9 @@ contract Treasury is ITreasury {
         allocations[Category.CommunityEvents] = 900; // 9%
     }
 
-    modifier onlyBarangayChain() {
+    modifier onlyProtocol() {
         require(
-            msg.sender == BARANGAY_CHAIN_ADDRESS,
+            msg.sender == protocol,
             "Treasury: Invalid BarangayChain address"
         );
         _;
@@ -47,7 +48,7 @@ contract Treasury is ITreasury {
         address to,
         uint256 amount,
         Category category
-    ) external onlyBarangayChain {
+    ) external onlyProtocol {
         require(
             IERC20(TREASURY_TOKEN).balanceOf(address(this)) > amount,
             "Treasury: Insufficient funds"
@@ -65,6 +66,16 @@ contract Treasury is ITreasury {
         IERC20(TREASURY_TOKEN).safeTransfer(to, amount);
 
         emit FundsReleased(to, amount, category);
+    }
+
+    function setProtocol(address protocol_) external {
+        require(
+            protocol_ != address(0),
+            "Treasury::setProtocol: Invalid address"
+        );
+        protocol = protocol_;
+
+        emit SetProtocol(protocol_);
     }
 
     receive() external payable {

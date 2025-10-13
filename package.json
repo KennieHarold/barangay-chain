@@ -4,7 +4,8 @@
   "type": "module",
   "license": "UNLICENSED",
   "scripts": {
-    "build": "hardhat build"
+    "build": "hardhat build",
+    "test": "hardhat test"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^3.0.3",
