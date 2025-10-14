@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { network } from "hardhat";
 import {
+  ContractTransactionResponse,
   keccak256,
   parseEther,
   toUtf8Bytes,
@@ -124,6 +125,7 @@ describe("BarangayChain", function () {
       expect(await barangayChain.VENDOR_ROLE()).to.be.eq(VENDOR_ROLE);
       expect(await barangayChain.QUORUM_VOTES()).to.be.eq(5);
       expect(await barangayChain.BASIS_POINT()).to.be.eq(10000n);
+      expect(await barangayChain.MIN_RELEASE_BPS_LENGTH()).to.be.eq(3);
     });
 
     it("should deploy with correct immutables", async function () {
@@ -229,6 +231,23 @@ describe("BarangayChain", function () {
       );
       expect(await barangayChain.getProjectMilestone(1n, 2n)).to.be.eqls(
         milestones[2]
+      );
+    });
+
+    it("should revert release bps template is too low", async function () {
+      await expect(
+        barangayChain.connect(official).createProject(
+          official,
+          vendor,
+          parseEther(String(1_000_000)), // 1 million
+          0n,
+          BigInt(startDate),
+          BigInt(endDate),
+          "ipfs://test-ipfs-hash",
+          [3000n, 7000n]
+        )
+      ).to.be.rejectedWith(
+        "BarangayChain::createProject: Too low release bps length"
       );
     });
   });
@@ -355,6 +374,80 @@ describe("BarangayChain", function () {
       expect(
         (await barangayChain.getProjectMilestone(1n, 0n)).status
       ).to.be.eqls(2n);
+    });
+  });
+
+  describe("Complete Project", async function () {
+    let completeMilestone0Tx: ContractTransactionResponse;
+    let completeMilestone1Tx: ContractTransactionResponse;
+    let completeMilestone2Tx: ContractTransactionResponse;
+
+    beforeEach(async function () {
+      await createProjectDefault();
+
+      // Milestone 0
+      await submitMilestone(1n);
+      await barangayChain.connect(alice).verifyMilestone(1n, true);
+      await barangayChain.connect(bob).verifyMilestone(1n, true);
+      await barangayChain.connect(dave).verifyMilestone(1n, true);
+      await barangayChain.connect(james).verifyMilestone(1n, true);
+      await barangayChain.connect(billy).verifyMilestone(1n, true);
+      completeMilestone0Tx = await barangayChain
+        .connect(official)
+        .completeMilestone(1n);
+
+      // Milestone 1
+      await submitMilestone(1n);
+      await barangayChain.connect(alice).verifyMilestone(1n, true);
+      await barangayChain.connect(bob).verifyMilestone(1n, true);
+      await barangayChain.connect(dave).verifyMilestone(1n, true);
+      await barangayChain.connect(james).verifyMilestone(1n, true);
+      await barangayChain.connect(billy).verifyMilestone(1n, true);
+      completeMilestone1Tx = await barangayChain
+        .connect(official)
+        .completeMilestone(1n);
+
+      // Milestone 2
+      await submitMilestone(1n);
+      await barangayChain.connect(alice).verifyMilestone(1n, true);
+      await barangayChain.connect(bob).verifyMilestone(1n, true);
+      await barangayChain.connect(dave).verifyMilestone(1n, true);
+      await barangayChain.connect(james).verifyMilestone(1n, true);
+      await barangayChain.connect(billy).verifyMilestone(1n, true);
+      completeMilestone2Tx = await barangayChain
+        .connect(official)
+        .completeMilestone(1n);
+    });
+
+    it("should complete project without fail", async function () {
+      expect(completeMilestone2Tx)
+        .to.be.emit(barangayChain, "MilestoneCompleted")
+        .withArgs(1n, 2n, parseEther(String(100_000)), true)
+        .to.emit(treasury, "FundsReleased")
+        .withArgs(vendor, parseEther(String(100_000)), 0n)
+        .to.emit(treasuryToken, "Transfer")
+        .withArgs(treasury, vendor, parseEther(String(100_000)));
+    });
+
+    it("should marked all milestones to done", async function () {
+      expect((await barangayChain.projects(1n)).currentMilestone).to.be.eql(2n);
+      expect(
+        (await barangayChain.getProjectMilestone(1n, 0n)).status
+      ).to.be.eqls(2n);
+      expect(
+        (await barangayChain.getProjectMilestone(1n, 1n)).status
+      ).to.be.eqls(2n);
+      expect(
+        (await barangayChain.getProjectMilestone(1n, 2n)).status
+      ).to.be.eqls(2n);
+    });
+
+    it("should not release fund on second milestone", async function () {
+      expect(completeMilestone1Tx)
+        .to.be.emit(barangayChain, "MilestoneCompleted")
+        .withArgs(1n, 1n, parseEther("0"), false)
+        .to.not.emit(treasury, "FundsReleased")
+        .to.not.emit(treasuryToken, "Transfer");
     });
   });
 });

@@ -12,8 +12,9 @@ contract BarangayChain is IBarangayChain, AccessControl {
     // Constants
     bytes32 public constant OFFICIAL_ROLE = keccak256("OFFICIAL_ROLE");
     bytes32 public constant VENDOR_ROLE = keccak256("VENDOR_ROLE");
-    uint8 public constant QUORUM_VOTES = 5;
     uint256 public constant BASIS_POINT = 10000;
+    uint8 public constant QUORUM_VOTES = 5;
+    uint8 public constant MIN_RELEASE_BPS_LENGTH = 3;
 
     // Immutables
     IERC20 public immutable PAYMENT_TOKEN;
@@ -58,6 +59,17 @@ contract BarangayChain is IBarangayChain, AccessControl {
         _;
     }
 
+    modifier validateProjectExists(uint256 projectId) {
+        Project memory project = projects[projectId];
+        require(
+            project.proposer != address(0) &&
+                project.vendor != address(0) &&
+                project.budget > 0,
+            "BarangayChain: Project doesn't exists"
+        );
+        _;
+    }
+
     function createProject(
         address proposer,
         address vendor,
@@ -68,6 +80,29 @@ contract BarangayChain is IBarangayChain, AccessControl {
         string memory uri,
         uint16[] memory releaseBpsTemplate
     ) external onlyOfficial {
+        require(
+            releaseBpsTemplate.length >= MIN_RELEASE_BPS_LENGTH,
+            "BarangayChain::createProject: Too low release bps length"
+        );
+        require(
+            proposer != address(0),
+            "BarangayChain::createProject: Invalid proposer address"
+        );
+        require(
+            vendor != address(0),
+            "BarangayChain::createProject: Invalid vendor address"
+        );
+
+        uint256 sum = 0;
+        for (uint8 i = 0; i < releaseBpsTemplate.length; i++) {
+            sum += releaseBpsTemplate[i];
+        }
+
+        require(
+            sum == BASIS_POINT,
+            "BarangayChain::createProject: Release bps length not equal to 100"
+        );
+
         projectCounter++;
 
         Project storage project = projects[projectCounter];
@@ -111,7 +146,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
     function submitMilestone(
         uint256 projectId,
         string memory uri
-    ) external onlyVendor {
+    ) external validateProjectExists(projectId) onlyVendor {
         Project storage project = projects[projectId];
 
         require(
@@ -136,7 +171,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
     function verifyMilestone(
         uint256 projectId,
         bool consensus
-    ) external onlyCitizen {
+    ) external validateProjectExists(projectId) onlyCitizen {
         Project storage project = projects[projectId];
 
         require(
@@ -176,7 +211,9 @@ contract BarangayChain is IBarangayChain, AccessControl {
         );
     }
 
-    function completeMilestone(uint256 projectId) external onlyOfficial {
+    function completeMilestone(
+        uint256 projectId
+    ) external validateProjectExists(projectId) onlyOfficial {
         Project storage project = projects[projectId];
 
         require(
@@ -205,7 +242,8 @@ contract BarangayChain is IBarangayChain, AccessControl {
 
         uint256 payment = 0;
         uint8 nextIndex = currentMilestone + 1;
-        bool isProjectCompleted = currentMilestone == project.milestones.length;
+        bool isProjectCompleted = currentMilestone ==
+            project.milestones.length - 1;
 
         if (isProjectCompleted) {
             payment = (project.budget * milestone.releaseBps) / BASIS_POINT;
