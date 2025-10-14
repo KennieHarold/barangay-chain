@@ -24,8 +24,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
     uint256 public projectCounter;
 
     mapping(uint256 projectId => Project) public projects;
-    mapping(uint256 projectId => mapping(uint8 milestoneIdx => bool flag))
-        private userVerifications;
+    mapping(bytes32 key => bool consensus) private userVerifications;
 
     constructor(ITreasury treasury_, IERC721 citizenNFT) {
         TREASURY = treasury_;
@@ -116,7 +115,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
         Project storage project = projects[projectId];
 
         require(
-            isWithinTimeframe(project.startDate, project.endDate),
+            _isWithinTimeframe(project.startDate, project.endDate),
             "BarangayChain::submitMilestone: Already due"
         );
 
@@ -136,12 +135,12 @@ contract BarangayChain is IBarangayChain, AccessControl {
 
     function verifyMilestone(
         uint256 projectId,
-        bool status
+        bool consensus
     ) external onlyCitizen {
         Project storage project = projects[projectId];
 
         require(
-            isWithinTimeframe(project.startDate, project.endDate),
+            _isWithinTimeframe(project.startDate, project.endDate),
             "BarangayChain::verifyMilestone: Already due"
         );
 
@@ -152,24 +151,26 @@ contract BarangayChain is IBarangayChain, AccessControl {
             milestone.status == MilestoneStatus.ForVerification,
             "BarangayChain::verifyMilestone: Invalid status"
         );
+
+        bytes32 verificationKey = _packKey(projectId, index, msg.sender);
         require(
-            !userVerifications[projectId][index],
+            !userVerifications[verificationKey],
             "BarangayChain::verifyMilestone: Already verified"
         );
 
-        if (status) {
+        if (consensus) {
             milestone.upvotes = milestone.upvotes + 1;
         } else {
             milestone.downvotes = milestone.downvotes + 1;
         }
 
-        userVerifications[projectId][index] = status;
+        userVerifications[verificationKey] = consensus;
 
-        emit MilestoneVoted(
+        emit MilestoneVerified(
             projectId,
             index,
             msg.sender,
-            status,
+            consensus,
             milestone.upvotes,
             milestone.downvotes
         );
@@ -179,7 +180,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
         Project storage project = projects[projectId];
 
         require(
-            isWithinTimeframe(project.startDate, project.endDate),
+            _isWithinTimeframe(project.startDate, project.endDate),
             "BarangayChain::completeMilestone: Already due"
         );
 
@@ -197,7 +198,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
 
         require(
             consensus,
-            "BarangayChain:completeMilestone Consensus required"
+            "BarangayChain::completeMilestone: Consensus required"
         );
 
         milestone.status = MilestoneStatus.Done;
@@ -242,15 +243,25 @@ contract BarangayChain is IBarangayChain, AccessControl {
 
     function getUserMilestoneVerification(
         uint256 projectId,
-        uint8 milestoneIdx
+        uint8 milestoneIdx,
+        address citizen
     ) external view returns (bool) {
-        return userVerifications[projectId][milestoneIdx];
+        bytes32 verificationKey = _packKey(projectId, milestoneIdx, citizen);
+        return userVerifications[verificationKey];
     }
 
-    function isWithinTimeframe(
+    function _isWithinTimeframe(
         uint64 startDate,
         uint64 endDate
     ) internal view returns (bool) {
         return block.timestamp >= startDate && block.timestamp <= endDate;
+    }
+
+    function _packKey(
+        uint256 projectId,
+        uint8 milestoneIdx,
+        address citizen
+    ) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(projectId, milestoneIdx, citizen));
     }
 }

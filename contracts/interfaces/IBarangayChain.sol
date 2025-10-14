@@ -23,11 +23,11 @@ interface IBarangayChain {
         string uri
     );
 
-    event MilestoneVoted(
+    event MilestoneVerified(
         uint256 indexed projectId,
         uint8 indexed milestoneIndex,
         address indexed voter,
-        bool status,
+        bool consensus,
         uint256 upvotes,
         uint256 downvotes
     );

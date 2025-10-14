@@ -27,6 +27,10 @@ describe("BarangayChain", function () {
   let vendor: Signer;
   let alice: Signer;
   let bob: Signer;
+  let dave: Signer;
+  let james: Signer;
+  let billy: Signer;
+  let john: Signer;
 
   const ADMIN_ROLE = ZeroHash;
   const OFFICIAL_ROLE = keccak256(toUtf8Bytes("OFFICIAL_ROLE"));
@@ -40,7 +44,8 @@ describe("BarangayChain", function () {
   });
 
   beforeEach(async function () {
-    [admin, official, vendor, alice, bob] = await ethers.getSigners();
+    [admin, official, vendor, alice, bob, dave, james, billy, john] =
+      await ethers.getSigners();
 
     // Deploy CitizenNFT
     const CitizenNFTFactory = await ethers.getContractFactory("CitizenNFT");
@@ -77,6 +82,11 @@ describe("BarangayChain", function () {
 
     // Mint CitizenNFT
     await citizenNFT.safeMint(alice);
+    await citizenNFT.safeMint(bob);
+    await citizenNFT.safeMint(dave);
+    await citizenNFT.safeMint(james);
+    await citizenNFT.safeMint(billy);
+    await citizenNFT.safeMint(john);
   });
 
   async function timeTravel(seconds: number) {
@@ -273,17 +283,17 @@ describe("BarangayChain", function () {
 
     it("should revert when verifying milestone by a non-citizen", async function () {
       await expect(
-        barangayChain.connect(bob).verifyMilestone(1n, true)
+        barangayChain.connect(vendor).verifyMilestone(1n, true)
       ).to.be.rejectedWith("BarangayChain: Not a citizen");
     });
 
     it("should verify milestone", async function () {
       await expect(barangayChain.connect(alice).verifyMilestone(1n, true))
-        .to.emit(barangayChain, "MilestoneVoted")
+        .to.emit(barangayChain, "MilestoneVerified")
         .withArgs(1n, 0n, alice, true, 1n, 0n);
 
-      expect(await barangayChain.getUserMilestoneVerification(1n, 0n)).to.be
-        .true;
+      expect(await barangayChain.getUserMilestoneVerification(1n, 0n, alice)).to
+        .be.true;
 
       const milestone = [1n, 0n, "ipfs://test-ipfs-hash", 3000n, 0n, 1n];
       expect(await barangayChain.getProjectMilestone(1n, 0n)).to.be.eqls(
@@ -303,6 +313,48 @@ describe("BarangayChain", function () {
       await expect(
         barangayChain.connect(alice).verifyMilestone(1n, true)
       ).to.be.rejectedWith("BarangayChain::verifyMilestone: Already due");
+    });
+  });
+
+  describe("Complete Milestone", async function () {
+    beforeEach(async function () {
+      await createProjectDefault();
+      await submitMilestone(1n);
+      await barangayChain.connect(alice).verifyMilestone(1n, true);
+      await barangayChain.connect(bob).verifyMilestone(1n, true);
+      await barangayChain.connect(dave).verifyMilestone(1n, true);
+      await barangayChain.connect(james).verifyMilestone(1n, true);
+      await barangayChain.connect(billy).verifyMilestone(1n, true);
+    });
+
+    it("should revert when quorum is not reached", async function () {
+      await barangayChain.connect(john).verifyMilestone(1n, false);
+      await expect(
+        barangayChain.connect(official).completeMilestone(1n)
+      ).to.be.rejectedWith(
+        "BarangayChain::completeMilestone: Consensus required"
+      );
+    });
+
+    it("should revert when non-official completes a milestone", async function () {
+      await expect(
+        barangayChain.connect(vendor).completeMilestone(1n)
+      ).to.be.rejectedWith("BarangayChain: Not an official");
+    });
+
+    it("should successfully complete milestone", async function () {
+      await expect(barangayChain.connect(official).completeMilestone(1n))
+        .to.be.emit(barangayChain, "MilestoneCompleted")
+        .withArgs(1n, 0n, parseEther(String(600_000)), false)
+        .to.emit(treasury, "FundsReleased")
+        .withArgs(vendor, parseEther(String(600_000)), 0n)
+        .to.emit(treasuryToken, "Transfer")
+        .withArgs(treasury, vendor, parseEther(String(600_000)));
+
+      expect((await barangayChain.projects(1n)).currentMilestone).to.be.eql(1n);
+      expect(
+        (await barangayChain.getProjectMilestone(1n, 0n)).status
+      ).to.be.eqls(2n);
     });
   });
 });
