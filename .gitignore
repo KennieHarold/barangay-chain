@@ -1,20 +1,33 @@
 # Node modules
-/node_modules
+node_modules
+**/node_modules
 
 # Compilation output
-/dist
+dist
 
 # pnpm deploy output
-/bundle
+bundle
 
 # Hardhat Build Artifacts
-/artifacts
+artifacts
 
 # Hardhat compilation (v2) support directory
-/cache
+cache
 
 # Typechain output
-/types
+types
 
 # Hardhat coverage reports
-/coverage
+coverage
+
+# Next.js
+.next
+out
+
+# Environment files
+.env
+.env.local
+.env*.local
+
+# Build artifacts
+*.log

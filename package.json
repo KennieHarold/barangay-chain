@@ -1,27 +1,16 @@
 {
   "name": "barangay-chain",
   "version": "1.0.0",
-  "type": "module",
+  "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "hardhat build",
-    "test": "hardhat test"
-  },
-  "devDependencies": {
-    "@nomicfoundation/hardhat-ignition": "^3.0.3",
-    "@nomicfoundation/hardhat-toolbox-mocha-ethers": "^3.0.0",
-    "@types/chai": "^4.3.20",
-    "@types/chai-as-promised": "^8.0.2",
-    "@types/mocha": "^10.0.10",
-    "@types/node": "^22.18.9",
-    "chai": "^5.3.3",
-    "ethers": "^6.15.0",
-    "forge-std": "github:foundry-rs/forge-std#v1.9.4",
-    "hardhat": "^3.0.7",
-    "mocha": "^11.7.4",
-    "typescript": "~5.8.0"
-  },
-  "dependencies": {
-    "@openzeppelin/contracts": "^5.4.0"
+    "dev": "pnpm --filter @barangay-chain/app dev",
+    "build": "pnpm --filter @barangay-chain/contracts build && pnpm --filter @barangay-chain/app build",
+    "test": "pnpm --filter @barangay-chain/contracts test",
+    "contracts:build": "pnpm --filter @barangay-chain/contracts build",
+    "contracts:test": "pnpm --filter @barangay-chain/contracts test",
+    "app:dev": "pnpm --filter @barangay-chain/app dev",
+    "app:build": "pnpm --filter @barangay-chain/app build",
+    "app:start": "pnpm --filter @barangay-chain/app start"
   }
 }
