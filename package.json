@@ -9,6 +9,8 @@
     "test": "pnpm --filter @barangay-chain/contracts test",
     "contracts:build": "pnpm --filter @barangay-chain/contracts build",
     "contracts:test": "pnpm --filter @barangay-chain/contracts test",
+    "contracts:deploy": "pnpm --filter @barangay-chain/contracts deploy",
+    "contracts:verify": "pnpm --filter @barangay-chain/contracts verify",
     "app:dev": "pnpm --filter @barangay-chain/app dev",
     "app:build": "pnpm --filter @barangay-chain/app build",
     "app:start": "pnpm --filter @barangay-chain/app start"

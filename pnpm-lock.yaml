@@ -57,9 +57,15 @@ importers:
       '@nomicfoundation/hardhat-ignition':
         specifier: ^3.0.3
         version: 3.0.3(@nomicfoundation/hardhat-verify@3.0.3(hardhat@3.0.7))(hardhat@3.0.7)
+      '@nomicfoundation/hardhat-keystore':
+        specifier: ^3.0.1
+        version: 3.0.1(hardhat@3.0.7)
       '@nomicfoundation/hardhat-toolbox-mocha-ethers':
         specifier: ^3.0.0
         version: 3.0.0(d269f0c34f3b38556b9781bd98ea2ef9)
+      '@nomicfoundation/hardhat-verify':
+        specifier: ^3.0.3
+        version: 3.0.3(hardhat@3.0.7)
       '@types/chai':
         specifier: ^4.3.20
         version: 4.3.20
