@@ -4,7 +4,7 @@ import {
   useReadContract,
 } from "wagmi";
 import { BARANGAY_CHAIN_ABI } from "@/lib/abi";
-import { CreateProjectData } from "@/types";
+import { CreateProjectData } from "@/models";
 import { Address } from "viem";
 
 const baseContractArgs = {
