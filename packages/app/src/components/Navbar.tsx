@@ -1,52 +1,120 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { useAccount, useConnect } from "wagmi";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { injected } from "wagmi/connectors";
+import {
+  AppBar,
+  Box,
+  Toolbar,
+  Typography,
+  Button,
+  Menu,
+  MenuItem,
+} from "@mui/material";
+import { shortenAddress } from "@/utils/format";
 
 export function Navbar() {
   const { address, isConnected } = useAccount();
   const { connect } = useConnect();
+  const { disconnect } = useDisconnect();
   const [mounted, setMounted] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const handleConnect = () => {
-    connect({ connector: injected() });
+    if (!isConnected) {
+      connect({ connector: injected() });
+    }
   };
 
-  return (
-    <nav className="p-4">
-      <div className="container mx-auto flex justify-between items-center">
-        <div className="flex gap-6 items-center">
-          <Link href="/" className="text-xl font-bold hover:text-blue-100">
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    if (isConnected) {
+      setAnchorEl(event.currentTarget);
+    } else {
+      handleConnect();
+    }
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    disconnect();
+    handleClose();
+  };
+
+  return mounted ? (
+    <Box sx={{ flexGrow: 1 }}>
+      <AppBar position="static" color="transparent" variant="outlined">
+        <Toolbar>
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{ flexGrow: 1 }}
+            fontWeight="bold"
+          >
             Barangay Chain
-          </Link>
-        </div>
-        <div>
-          {!mounted ? (
-            <div className="w-32 h-10"></div>
-          ) : isConnected ? (
-            <div className="flex items-center gap-4">
-              <div className="flex items-center">
-                <span className="text-sm font-medium">
-                  {address?.slice(0, 6)}...{address?.slice(-4)}
-                </span>
-              </div>
-            </div>
-          ) : (
-            <button
-              onClick={handleConnect}
-              className="px-4 py-2 bg-white text-blue-600 hover:bg-blue-50 rounded font-medium"
-            >
-              Connect Wallet
-            </button>
-          )}
-        </div>
-      </div>
-    </nav>
+          </Typography>
+          <Button
+            color="inherit"
+            onClick={handleClick}
+            sx={{
+              borderRadius: "20px",
+              paddingLeft: "1em",
+              paddingRight: "1em",
+            }}
+          >
+            {isConnected ? (
+              <Typography
+                component="div"
+                variant="button"
+                style={{ textTransform: "lowercase" }}
+              >
+                {shortenAddress(address || "0x")}
+              </Typography>
+            ) : (
+              <Typography
+                component="div"
+                variant="button"
+                style={{ textTransform: "capitalize" }}
+              >
+                Connect Wallet
+              </Typography>
+            )}
+          </Button>
+          <Menu
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "right",
+            }}
+            transformOrigin={{
+              vertical: "top",
+              horizontal: "right",
+            }}
+          >
+            <MenuItem onClick={handleLogout}>
+              <Typography
+                component="div"
+                variant="button"
+                style={{ textTransform: "capitalize" }}
+              >
+                Disconnect
+              </Typography>
+            </MenuItem>
+          </Menu>
+        </Toolbar>
+      </AppBar>
+    </Box>
+  ) : (
+    <></>
   );
 }

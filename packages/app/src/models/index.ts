@@ -11,6 +11,21 @@ export enum Category {
   CommunityEvents,
 }
 
+export interface Project {
+  id: number;
+  title: string;
+  description: string;
+  proposer: Address;
+  vendor: Address;
+  startDate: bigint;
+  endDate: bigint;
+  budget: bigint;
+  category: Category;
+  currentMilestone: number;
+  metadataURI: string;
+  milestones: Milestone[];
+}
+
 export enum MilestoneStatus {
   Pending,
   ForVerification,
