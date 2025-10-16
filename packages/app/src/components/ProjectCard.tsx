@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { formatEther } from "viem";
 import {
   Card,
   CardContent,
@@ -10,8 +12,8 @@ import {
   LinearProgress,
   Button,
 } from "@mui/material";
+
 import { MilestoneStatus, Project } from "@/models";
-import { formatEther } from "viem";
 import { statusColors, statusLabels } from "@/constants/project";
 import { formatDate, shortenAddress } from "@/utils/format";
 
@@ -20,11 +22,16 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
+  const router = useRouter();
   const currentMilestone = project.milestones[project.currentMilestone];
   const completedMilestones = project.milestones.filter(
     (m) => m.status === MilestoneStatus.Done
   ).length;
   const progress = (completedMilestones / project.milestones.length) * 100;
+
+  const handleViewDetails = () => {
+    router.push(`/projects/${project.id}`);
+  };
 
   return (
     <Card
@@ -106,6 +113,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           variant="outlined"
           fullWidth
           sx={{ borderRadius: "20px" }}
+          onClick={handleViewDetails}
         >
           View Details
         </Button>

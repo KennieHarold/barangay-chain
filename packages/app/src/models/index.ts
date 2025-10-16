@@ -51,3 +51,12 @@ export interface Milestone {
   index: number;
   status: MilestoneStatus;
 }
+
+export interface EventLog {
+  id: string;
+  event: string;
+  timestamp: Date;
+  sender: string;
+  details: string;
+  txHash: string;
+}

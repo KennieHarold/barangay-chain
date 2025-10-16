@@ -1,0 +1,149 @@
+"use client";
+
+import { formatEther } from "viem";
+import {
+  Box,
+  Typography,
+  Paper,
+  Grid,
+  Chip,
+  LinearProgress,
+} from "@mui/material";
+
+import { Project, MilestoneStatus } from "@/models";
+import { formatDate } from "@/utils/format";
+import {
+  statusColors,
+  statusLabels,
+  categoryLabels,
+} from "@/constants/project";
+
+interface ProjectHeaderProps {
+  project: Project;
+}
+
+export function ProjectHeader({ project }: ProjectHeaderProps) {
+  const currentMilestone = project.milestones[project.currentMilestone];
+  const completedMilestones = project.milestones.filter(
+    (m) => m.status === MilestoneStatus.Done
+  ).length;
+  const progress = (completedMilestones / project.milestones.length) * 100;
+
+  return (
+    <Paper elevation={2} sx={{ p: 4, borderRadius: 2 }}>
+      <Box sx={{ mb: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            mb: 2,
+          }}
+        >
+          <Typography variant="h4" component="h1" fontWeight="bold">
+            {project.title}
+          </Typography>
+          <Chip
+            label={statusLabels[currentMilestone.status]}
+            sx={{
+              backgroundColor: statusColors[currentMilestone.status],
+              color: "white",
+              fontWeight: "bold",
+            }}
+          />
+        </Box>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+          {project.description}
+        </Typography>
+      </Box>
+
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              Budget
+            </Typography>
+            <Typography variant="h5" fontWeight="bold">
+              {formatEther(project.budget)} PYUSD
+            </Typography>
+          </Box>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 3 }}>
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              Category
+            </Typography>
+            <Typography variant="h6">
+              {categoryLabels[project.category]}
+            </Typography>
+          </Box>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 3 }}>
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              Start Date
+            </Typography>
+            <Typography variant="h6">
+              {formatDate(project.startDate)}
+            </Typography>
+          </Box>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 3 }}>
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              End Date
+            </Typography>
+            <Typography variant="h6">{formatDate(project.endDate)}</Typography>
+          </Box>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              Proposer
+            </Typography>
+            <Typography variant="body1" fontFamily="monospace">
+              {project.proposer}
+            </Typography>
+          </Box>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              Contractor (Vendor)
+            </Typography>
+            <Typography variant="body1" fontFamily="monospace">
+              {project.vendor}
+            </Typography>
+          </Box>
+        </Grid>
+
+        <Grid size={{ xs: 12 }}>
+          <Box>
+            <Typography variant="caption" color="text.secondary" gutterBottom>
+              Overall Progress
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <LinearProgress
+                variant="determinate"
+                value={progress}
+                sx={{ flexGrow: 1, height: 10, borderRadius: 5 }}
+              />
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                fontWeight="bold"
+              >
+                {completedMilestones}/{project.milestones.length} Milestones
+              </Typography>
+            </Box>
+          </Box>
+        </Grid>
+      </Grid>
+    </Paper>
+  );
+}
