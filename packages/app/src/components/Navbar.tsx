@@ -13,11 +13,11 @@ import {
   MenuItem,
 } from "@mui/material";
 import {
-  AdminPanelSettings,
-  Engineering,
-  Person,
-  PersonOutline,
   ElectricBoltOutlined,
+  GavelOutlined,
+  BadgeOutlined,
+  PersonOutlined,
+  BuildOutlined,
 } from "@mui/icons-material";
 
 import { shortenAddress } from "@/utils/format";
@@ -67,14 +67,14 @@ export function Navbar() {
       case UserRole.Admin:
         return <ElectricBoltOutlined {...iconProps} />;
       case UserRole.Official:
-        return <AdminPanelSettings {...iconProps} />;
+        return <GavelOutlined {...iconProps} />;
       case UserRole.Contractor:
-        return <Engineering {...iconProps} />;
+        return <BuildOutlined {...iconProps} />;
       case UserRole.Citizen:
-        return <Person {...iconProps} />;
+        return <BadgeOutlined {...iconProps} />;
       case UserRole.Guest:
       default:
-        return <PersonOutline {...iconProps} />;
+        return <PersonOutlined {...iconProps} />;
     }
   };
 
