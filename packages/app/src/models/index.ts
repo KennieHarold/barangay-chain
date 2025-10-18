@@ -11,6 +11,14 @@ export enum Category {
   CommunityEvents,
 }
 
+export enum UserRole {
+  Admin,
+  Official,
+  Contractor,
+  Citizen,
+  Guest,
+}
+
 export interface Project {
   id: number;
   title: string;

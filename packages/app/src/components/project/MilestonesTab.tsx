@@ -19,7 +19,7 @@ import {
   Upload as UploadIcon,
 } from "@mui/icons-material";
 
-import { Project, MilestoneStatus } from "@/models";
+import { Project, MilestoneStatus, UserRole } from "@/models";
 import { statusColors, statusLabels } from "@/constants/project";
 import { SubmitMilestoneDialog } from "@/components/SubmitMilestoneDialog";
 import { useHasRole } from "@/hooks/useBarangayChain";
@@ -38,8 +38,14 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
   const [description, setDescription] = useState("");
   const [attachmentUri, setAttachmentUri] = useState("");
 
-  const { data: isContractor } = useHasRole("VENDOR_ROLE", address as Address);
-  const { data: isOfficial } = useHasRole("OFFICIAL_ROLE", address as Address);
+  const { data: isContractor } = useHasRole(
+    UserRole.Contractor,
+    address as Address
+  );
+  const { data: isOfficial } = useHasRole(
+    UserRole.Official,
+    address as Address
+  );
   const { data: nftBalance } = useBalanceOf(address as Address);
   const isCitizen = BigInt(nftBalance || 0) > BigInt(0);
 

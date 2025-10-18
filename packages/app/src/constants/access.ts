@@ -1,7 +1,9 @@
-import { keccak256, toBytes, zeroAddress } from "viem";
+import { UserRole } from "@/models";
+import { keccak256, toBytes } from "viem";
 
 export const roles = {
-  ADMIN_ROLE: zeroAddress,
-  OFFICIAL_ROLE: keccak256(toBytes("OFFICIAL_ROLE")),
-  VENDOR_ROLE: keccak256(toBytes("VENDOR_ROLE")),
+  [UserRole.Admin]:
+    "0x0000000000000000000000000000000000000000000000000000000000000000",
+  [UserRole.Official]: keccak256(toBytes("OFFICIAL_ROLE")),
+  [UserRole.Contractor]: keccak256(toBytes("VENDOR_ROLE")),
 } as const;
