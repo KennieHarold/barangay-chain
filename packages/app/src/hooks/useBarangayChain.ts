@@ -10,7 +10,7 @@ import { CreateProjectData } from "@/models";
 import { roles } from "@/constants/access";
 
 const baseContractArgs = {
-  address: process.env.BARANGAY_CHAIN_ADDRESS as Address,
+  address: process.env.NEXT_PUBLIC_BARANGAY_CHAIN_ADDRESS as Address,
   abi: BARANGAY_CHAIN_ABI,
 };
 
