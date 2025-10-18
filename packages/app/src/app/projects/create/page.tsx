@@ -23,11 +23,15 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { parseEther, isAddress } from "viem";
+import { enqueueSnackbar } from "notistack";
+import { useAccount } from "wagmi";
 import * as yup from "yup";
 
 import { Category, CreateProjectData } from "@/models";
 import { categoryLabels } from "@/constants/project";
 import { Navbar } from "@/components/Navbar";
+import { useCreateProject } from "@/hooks/useBarangayChain";
+import { useUploadJsonMutation } from "@/hooks/useIPFS";
 
 const MIN_MILESTONES = 3;
 const BASIS_POINTS = 10000;
@@ -127,6 +131,10 @@ const schema: yup.ObjectSchema<ProjectFormData> = yup.object({
 
 export default function CreateProjectPage() {
   const router = useRouter();
+  const { address } = useAccount();
+  const { mutate, hash, isSuccess, isPending } = useCreateProject();
+  const { mutateAsync: uploadAsync } = useUploadJsonMutation();
+
   const [mounted, setMounted] = useState(false);
 
   const categories = useMemo(
@@ -138,13 +146,13 @@ export default function CreateProjectPage() {
     control,
     handleSubmit,
     watch,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<ProjectFormData>({
     resolver: yupResolver(schema),
     defaultValues: {
       title: "",
       description: "",
-      proposer: "",
+      proposer: address,
       vendor: "",
       budget: "",
       category: Category.Infrastructure,
@@ -182,6 +190,15 @@ export default function CreateProjectPage() {
 
   const onSubmit = async (data: ProjectFormData) => {
     try {
+      const { url } = await uploadAsync({
+        title: data.title,
+        description: data.description,
+      });
+
+      if (!url) {
+        throw new Error("Upload failed: Can't find URL");
+      }
+
       const releaseBpsTemplate = data.milestones.map((milestone) =>
         Math.round((milestone.percentage / 100) * BASIS_POINTS)
       );
@@ -200,15 +217,28 @@ export default function CreateProjectPage() {
         category: data.category,
         startDate: startTimestamp,
         endDate: endTimestamp,
-        uri: "",
+        uri: url,
         releaseBpsTemplate,
       };
-      console.log("Creating project with data:", projectData);
-      router.push("/projects");
+
+      mutate(projectData);
     } catch (error) {
       console.error("Error creating project:", error);
+      enqueueSnackbar({
+        message: `Error creating project: ${error}`,
+        variant: "error",
+      });
     }
   };
+
+  useEffect(() => {
+    if (hash && isSuccess) {
+      enqueueSnackbar({
+        message: `Successfully created project with transaction hash: ${hash}`,
+        variant: "success",
+      });
+    }
+  }, [hash, isSuccess]);
 
   useEffect(() => {
     setMounted(true);
@@ -483,8 +513,13 @@ export default function CreateProjectPage() {
                   <Button variant="outlined" onClick={() => router.back()}>
                     Cancel
                   </Button>
-                  <Button type="submit" variant="contained" size="large">
-                    Create Project
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    disabled={isPending || !isValid}
+                  >
+                    {isPending ? "Simmering..." : "Create Project"}
                   </Button>
                 </Box>
               </Grid>

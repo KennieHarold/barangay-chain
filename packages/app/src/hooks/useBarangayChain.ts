@@ -14,27 +14,14 @@ const baseContractArgs = {
   abi: BARANGAY_CHAIN_ABI,
 };
 
-export function useCreateProject(project: CreateProjectData) {
+export function useCreateProject() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   });
 
-  const {
-    proposer,
-    vendor,
-    budget,
-    category,
-    startDate,
-    endDate,
-    uri,
-    releaseBpsTemplate,
-  } = project;
-
-  writeContract({
-    ...baseContractArgs,
-    functionName: "createProject",
-    args: [
+  const mutate = (project: CreateProjectData) => {
+    const {
       proposer,
       vendor,
       budget,
@@ -43,40 +30,59 @@ export function useCreateProject(project: CreateProjectData) {
       endDate,
       uri,
       releaseBpsTemplate,
-    ],
-  });
+    } = project;
 
-  return { hash, isPending, isConfirming, isSuccess, error };
+    writeContract({
+      ...baseContractArgs,
+      functionName: "createProject",
+      args: [
+        proposer,
+        vendor,
+        budget,
+        category,
+        startDate,
+        endDate,
+        uri,
+        releaseBpsTemplate,
+      ],
+    });
+  };
+
+  return { mutate, hash, isPending, isConfirming, isSuccess, error };
 }
 
-export function useSubmitMilestone(projectId: string, uri: string) {
+export function useSubmitMilestone() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   });
 
-  writeContract({
-    ...baseContractArgs,
-    functionName: "submitMilestone",
-    args: [BigInt(projectId), uri],
-  });
+  const mutate = (projectId: string, uri: string) => {
+    writeContract({
+      ...baseContractArgs,
+      functionName: "submitMilestone",
+      args: [BigInt(projectId), uri],
+    });
+  };
 
-  return { hash, isPending, isConfirming, isSuccess, error };
+  return { mutate, hash, isPending, isConfirming, isSuccess, error };
 }
 
-export function useVerifyMilestone(projectId: string, consensus: boolean) {
+export function useVerifyMilestone() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   });
 
-  writeContract({
-    ...baseContractArgs,
-    functionName: "verifyMilestone",
-    args: [BigInt(projectId), consensus],
-  });
+  const mutate = (projectId: string, consensus: boolean) => {
+    writeContract({
+      ...baseContractArgs,
+      functionName: "verifyMilestone",
+      args: [BigInt(projectId), consensus],
+    });
+  };
 
-  return { hash, isPending, isConfirming, isSuccess, error };
+  return { mutate, hash, isPending, isConfirming, isSuccess, error };
 }
 
 export function useCompleteMilestone(projectId: string) {
@@ -85,13 +91,15 @@ export function useCompleteMilestone(projectId: string) {
     hash,
   });
 
-  writeContract({
-    ...baseContractArgs,
-    functionName: "completeMilestone",
-    args: [BigInt(projectId)],
-  });
+  const mutate = (projectId: string) => {
+    writeContract({
+      ...baseContractArgs,
+      functionName: "completeMilestone",
+      args: [BigInt(projectId)],
+    });
+  };
 
-  return { hash, isPending, isConfirming, isSuccess, error };
+  return { mutate, hash, isPending, isConfirming, isSuccess, error };
 }
 
 export function useProjectInfo(projectId: string) {

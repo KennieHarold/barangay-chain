@@ -21,7 +21,7 @@ import {
 
 import { Project, MilestoneStatus, UserRole } from "@/models";
 import { statusColors, statusLabels } from "@/constants/project";
-import { SubmitMilestoneDialog } from "@/components/SubmitMilestoneDialog";
+import { SubmitMilestoneDialog } from "@/components/project/SubmitMilestoneDialog";
 import { useHasRole } from "@/hooks/useBarangayChain";
 import { useBalanceOf } from "@/hooks/useCitizenNFT";
 
