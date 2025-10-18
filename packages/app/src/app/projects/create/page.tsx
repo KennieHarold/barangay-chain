@@ -132,8 +132,14 @@ const schema: yup.ObjectSchema<ProjectFormData> = yup.object({
 export default function CreateProjectPage() {
   const router = useRouter();
   const { address } = useAccount();
-  const { mutate, hash, isSuccess, isPending } = useCreateProject();
-  const { mutateAsync: uploadAsync } = useUploadJsonMutation();
+  const {
+    mutate,
+    hash,
+    isSuccess,
+    isPending: isCreatingProject,
+  } = useCreateProject();
+  const { mutateAsync: uploadAsync, isPending: isUploading } =
+    useUploadJsonMutation();
 
   const [mounted, setMounted] = useState(false);
 
@@ -190,12 +196,12 @@ export default function CreateProjectPage() {
 
   const onSubmit = async (data: ProjectFormData) => {
     try {
-      const { url } = await uploadAsync({
+      const uri = await uploadAsync({
         title: data.title,
         description: data.description,
       });
 
-      if (!url) {
+      if (!uri) {
         throw new Error("Upload failed: Can't find URL");
       }
 
@@ -217,7 +223,7 @@ export default function CreateProjectPage() {
         category: data.category,
         startDate: startTimestamp,
         endDate: endTimestamp,
-        uri: url,
+        uri,
         releaseBpsTemplate,
       };
 
@@ -517,9 +523,11 @@ export default function CreateProjectPage() {
                     type="submit"
                     variant="contained"
                     size="large"
-                    disabled={isPending || !isValid}
+                    disabled={isCreatingProject || isUploading || !isValid}
                   >
-                    {isPending ? "Simmering..." : "Create Project"}
+                    {isCreatingProject || isUploading
+                      ? "Simmering..."
+                      : "Create Project"}
                   </Button>
                 </Box>
               </Grid>

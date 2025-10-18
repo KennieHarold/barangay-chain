@@ -1,15 +1,21 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { pinata } from "@/utils/config";
-
 export function useUploadJsonMutation() {
   return useMutation({
     mutationFn: async (data: any) => {
-      const url = await pinata.upload.public.createSignedURL({
-        expires: 60 * 60 * 24 * 90, // 3 mos
+      const response = await fetch("/api/ipfs/upload-json", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       });
-      const uploadResponse = await pinata.upload.public.json(data).url(url);
-      return { url, uploadResponse };
+
+      if (!response.ok) {
+        throw new Error("Failed to upload JSON to IPFS");
+      }
+
+      return await response.json();
     },
   });
 }
@@ -17,11 +23,19 @@ export function useUploadJsonMutation() {
 export function useUploadImageMutation() {
   return useMutation({
     mutationFn: async (file: File) => {
-      const url = await pinata.upload.public.createSignedURL({
-        expires: 60 * 60 * 24 * 90, // 3 mos
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/ipfs/upload-file", {
+        method: "POST",
+        body: formData,
       });
-      const uploadResponse = await pinata.upload.public.file(file).url(url);
-      return { url, uploadResponse };
+
+      if (!response.ok) {
+        throw new Error("Failed to upload file to IPFS");
+      }
+
+      return await response.json();
     },
   });
 }
