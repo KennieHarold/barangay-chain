@@ -4,9 +4,15 @@ import { useEffect, useState } from "react";
 import { Box, Container, Grid, Typography } from "@mui/material";
 import { ProjectCard } from "./ProjectCard";
 import { mockProjects } from "@/data/mockProjects";
+import { useProjectCounter } from "@/hooks/useBarangayChain";
 
 export function ProjectsList() {
   const [mounted, setMounted] = useState(false);
+  const { data: projectLength } = useProjectCounter();
+  const projectIds = Array.from(
+    { length: parseInt(projectLength?.toString() || "0") },
+    (_, i) => i + 1
+  );
 
   useEffect(() => {
     setMounted(true);
@@ -29,9 +35,9 @@ export function ProjectsList() {
         </Box>
       ) : (
         <Grid container spacing={3} paddingX={12}>
-          {mockProjects.map((project) => (
-            <Grid key={project.id} size={{ md: 4 }}>
-              <ProjectCard project={project} />
+          {projectIds.map((id) => (
+            <Grid key={id} size={{ md: 4 }}>
+              <ProjectCard projectId={id} />
             </Grid>
           ))}
         </Grid>

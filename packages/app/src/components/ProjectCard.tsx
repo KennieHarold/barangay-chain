@@ -13,25 +13,47 @@ import {
   Button,
 } from "@mui/material";
 
-import { MilestoneStatus, Project } from "@/models";
 import { statusColors, statusLabels } from "@/constants/project";
 import { formatDate, shortenAddress } from "@/utils/format";
+import { useProjectData } from "@/hooks/useProjectData";
+import { MilestoneStatus } from "@/models";
 
 interface ProjectCardProps {
-  project: Project;
+  projectId: number;
 }
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ projectId }: ProjectCardProps) {
   const router = useRouter();
-  const currentMilestone = project.milestones[project.currentMilestone];
-  const completedMilestones = project.milestones.filter(
+  const project = useProjectData(projectId);
+
+  const currentMilestone =
+    project?.milestones && typeof project?.currentMilestone === "number"
+      ? project.milestones[project.currentMilestone]
+      : null;
+
+  const completedMilestones = project?.milestones.filter(
     (m) => m.status === MilestoneStatus.Done
   ).length;
-  const progress = (completedMilestones / project.milestones.length) * 100;
+
+  const progress =
+    project?.milestones && completedMilestones
+      ? (completedMilestones / project?.milestones.length) * 100
+      : 0;
 
   const handleViewDetails = () => {
-    router.push(`/projects/${project.id}`);
+    router.push(`/projects/${projectId}`);
   };
+
+  if (
+    !(
+      project &&
+      currentMilestone &&
+      typeof completedMilestones === "number" &&
+      typeof progress === "number"
+    )
+  ) {
+    return <></>;
+  }
 
   return (
     <Card

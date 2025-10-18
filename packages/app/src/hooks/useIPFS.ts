@@ -1,4 +1,6 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+
+import { pinata } from "@/utils/config";
 
 export function useUploadJsonMutation() {
   return useMutation({
@@ -37,5 +39,13 @@ export function useUploadImageMutation() {
 
       return await response.json();
     },
+  });
+}
+
+export function useFetchMetadataQuery(cid: string) {
+  return useQuery({
+    queryKey: ["metadata", cid],
+    queryFn: async () => await pinata.gateways.public.get(cid),
+    enabled: cid !== "",
   });
 }

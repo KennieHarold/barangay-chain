@@ -233,6 +233,7 @@ export default function CreateProjectPage() {
       enqueueSnackbar({
         message: `Error creating project: ${error}`,
         variant: "error",
+        anchorOrigin: { vertical: "top", horizontal: "right" },
       });
     }
   };
@@ -242,9 +243,14 @@ export default function CreateProjectPage() {
       enqueueSnackbar({
         message: `Successfully created project with transaction hash: ${hash}`,
         variant: "success",
+        anchorOrigin: { vertical: "top", horizontal: "right" },
       });
+
+      setTimeout(() => {
+        router.push("/");
+      }, 2000);
     }
-  }, [hash, isSuccess]);
+  }, [hash, isSuccess, router]);
 
   useEffect(() => {
     setMounted(true);

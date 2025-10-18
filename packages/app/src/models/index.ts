@@ -68,3 +68,14 @@ export interface EventLog {
   details: string;
   txHash: string;
 }
+
+export interface ProjectOnChain {
+  proposer: Address;
+  vendor: Address;
+  startDate: bigint;
+  endDate: bigint;
+  budget: bigint;
+  category: number;
+  currentMilestone: number;
+  metadataURI: string;
+}

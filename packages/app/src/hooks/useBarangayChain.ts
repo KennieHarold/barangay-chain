@@ -57,7 +57,7 @@ export function useSubmitMilestone() {
     hash,
   });
 
-  const mutate = (projectId: string, uri: string) => {
+  const mutate = (projectId: number, uri: string) => {
     writeContract({
       ...baseContractArgs,
       functionName: "submitMilestone",
@@ -74,7 +74,7 @@ export function useVerifyMilestone() {
     hash,
   });
 
-  const mutate = (projectId: string, consensus: boolean) => {
+  const mutate = (projectId: number, consensus: boolean) => {
     writeContract({
       ...baseContractArgs,
       functionName: "verifyMilestone",
@@ -85,13 +85,13 @@ export function useVerifyMilestone() {
   return { mutate, hash, isPending, isConfirming, isSuccess, error };
 }
 
-export function useCompleteMilestone(projectId: string) {
+export function useCompleteMilestone() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   });
 
-  const mutate = (projectId: string) => {
+  const mutate = (projectId: number) => {
     writeContract({
       ...baseContractArgs,
       functionName: "completeMilestone",
@@ -102,7 +102,7 @@ export function useCompleteMilestone(projectId: string) {
   return { mutate, hash, isPending, isConfirming, isSuccess, error };
 }
 
-export function useProjectInfo(projectId: string) {
+export function useProjectInfo(projectId: number) {
   return useReadContract({
     ...baseContractArgs,
     functionName: "projects",
@@ -114,7 +114,7 @@ export function useProjectInfo(projectId: string) {
 }
 
 export function useProjectMilestoneInfo(
-  projectId: string,
+  projectId: number,
   milestoneIdx: number
 ) {
   return useReadContract({
@@ -135,5 +135,13 @@ export function useHasRole(role: keyof typeof roles, account: Address) {
     query: {
       enabled: role !== undefined && account !== undefined,
     },
+  });
+}
+
+export function useProjectCounter() {
+  return useReadContract({
+    ...baseContractArgs,
+    functionName: "projectCounter",
+    args: [],
   });
 }
