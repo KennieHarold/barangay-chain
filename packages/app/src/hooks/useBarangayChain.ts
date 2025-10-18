@@ -3,9 +3,11 @@ import {
   useWaitForTransactionReceipt,
   useReadContract,
 } from "wagmi";
+import { Address } from "viem";
+
 import { BARANGAY_CHAIN_ABI } from "@/lib/abi";
 import { CreateProjectData } from "@/models";
-import { Address } from "viem";
+import { roles } from "@/constants/access";
 
 const baseContractArgs = {
   address: process.env.BARANGAY_CHAIN_ADDRESS as Address,
@@ -113,6 +115,17 @@ export function useProjectMilestoneInfo(
     args: [BigInt(projectId), milestoneIdx],
     query: {
       enabled: projectId !== undefined && milestoneIdx !== undefined,
+    },
+  });
+}
+
+export function useHasRole(role: keyof typeof roles, account: Address) {
+  return useReadContract({
+    ...baseContractArgs,
+    functionName: "hasRole",
+    args: [roles[role], account],
+    query: {
+      enabled: role !== undefined && account !== undefined,
     },
   });
 }

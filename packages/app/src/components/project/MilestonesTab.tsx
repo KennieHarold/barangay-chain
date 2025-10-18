@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAccount } from "wagmi";
+import { Address } from "viem";
 import {
   Box,
   Card,
@@ -21,6 +22,8 @@ import {
 import { Project, MilestoneStatus } from "@/models";
 import { statusColors, statusLabels } from "@/constants/project";
 import { SubmitMilestoneDialog } from "@/components/SubmitMilestoneDialog";
+import { useHasRole } from "@/hooks/useBarangayChain";
+import { useBalanceOf } from "@/hooks/useCitizenNFT";
 
 interface MilestonesTabProps {
   project: Project;
@@ -35,9 +38,10 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
   const [description, setDescription] = useState("");
   const [attachmentUri, setAttachmentUri] = useState("");
 
-  const isContractor = address?.toLowerCase() === project.vendor.toLowerCase();
-  const isOfficial = false;
-  const isCitizen = true;
+  const { data: isContractor } = useHasRole("VENDOR_ROLE", address as Address);
+  const { data: isOfficial } = useHasRole("OFFICIAL_ROLE", address as Address);
+  const { data: nftBalance } = useBalanceOf(address as Address);
+  const isCitizen = BigInt(nftBalance || 0) > BigInt(0);
 
   const handleOpenSubmitDialog = (milestoneIndex: number) => {
     setSelectedMilestoneIndex(milestoneIndex);
