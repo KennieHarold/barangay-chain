@@ -25,6 +25,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
     uint256 public projectCounter;
 
     mapping(uint256 projectId => Project) public projects;
+    mapping(uint256 projectId => uint256 amount) public amountFundsReleased;
     mapping(bytes32 key => bool consensus) private userVerifications;
 
     constructor(ITreasury treasury_, IERC721 citizenNFT) {
@@ -39,14 +40,6 @@ contract BarangayChain is IBarangayChain, AccessControl {
         require(
             hasRole(OFFICIAL_ROLE, msg.sender),
             "BarangayChain: Not an official"
-        );
-        _;
-    }
-
-    modifier onlyVendor() {
-        require(
-            hasRole(VENDOR_ROLE, msg.sender),
-            "BarangayChain: Not a vendor"
         );
         _;
     }
@@ -110,6 +103,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
         project.vendor = vendor;
         project.startDate = startDate;
         project.endDate = endDate;
+        project.milestoneCount = releaseBpsTemplate.length;
         project.budget = budget;
         project.category = category;
         project.currentMilestone = 0;
@@ -130,6 +124,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
 
         uint256 advancePayment = (budget * releaseBpsTemplate[0]) / BASIS_POINT;
         TREASURY.releaseFunds(vendor, advancePayment, category);
+        amountFundsReleased[projectCounter] = advancePayment;
 
         emit ProjectCreated(
             projectCounter,
@@ -146,9 +141,13 @@ contract BarangayChain is IBarangayChain, AccessControl {
     function submitMilestone(
         uint256 projectId,
         string memory uri
-    ) external validateProjectExists(projectId) onlyVendor {
+    ) external validateProjectExists(projectId) {
         Project storage project = projects[projectId];
 
+        require(
+            project.vendor == msg.sender,
+            "BarangayChain::submitMilestone: Only assigned vendor"
+        );
         require(
             _isWithinTimeframe(project.startDate, project.endDate),
             "BarangayChain::submitMilestone: Already due"
@@ -260,6 +259,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
             payment = (project.budget * nextMilestone.releaseBps) / BASIS_POINT;
         }
         if (payment > 0) {
+            amountFundsReleased[projectId] = payment;
             TREASURY.releaseFunds(project.vendor, payment, project.category);
         }
 

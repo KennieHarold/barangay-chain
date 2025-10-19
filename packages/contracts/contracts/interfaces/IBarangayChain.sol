@@ -51,6 +51,7 @@ interface IBarangayChain {
         address vendor;
         uint64 startDate;
         uint64 endDate;
+        uint256 milestoneCount;
         uint256 budget;
         ITreasury.Category category;
         uint8 currentMilestone;

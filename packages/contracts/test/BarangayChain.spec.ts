@@ -144,6 +144,7 @@ describe("BarangayChain", function () {
         0n,
         0n,
         0n,
+        0n,
         "",
       ]);
     });
@@ -212,6 +213,7 @@ describe("BarangayChain", function () {
         await vendor.getAddress(),
         BigInt(startDate),
         BigInt(endDate),
+        3n,
         parseEther(String(1_000_000)), // 1 million
         0n,
         0n,
@@ -262,7 +264,9 @@ describe("BarangayChain", function () {
         barangayChain
           .connect(alice)
           .submitMilestone(1n, "ipfs://test-ipfs-hash")
-      ).to.be.rejectedWith("BarangayChain: Not a vendor");
+      ).to.be.rejectedWith(
+        "BarangayChain::submitMilestone: Only assigned vendor"
+      );
     });
 
     it("should submit milestone successfully", async function () {
