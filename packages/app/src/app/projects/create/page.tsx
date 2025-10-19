@@ -32,6 +32,7 @@ import { categoryLabels } from "@/constants/project";
 import { Navbar } from "@/components/Navbar";
 import { useCreateProject } from "@/hooks/useBarangayChain";
 import { useUploadJsonMutation } from "@/hooks/useIPFS";
+import { shortenAddress } from "@/utils/format";
 
 const MIN_MILESTONES = 3;
 const BASIS_POINTS = 10000;
@@ -241,7 +242,9 @@ export default function CreateProjectPage() {
   useEffect(() => {
     if (hash && isSuccess) {
       enqueueSnackbar({
-        message: `Successfully created project with transaction hash: ${hash}`,
+        message: `Successfully created project with transaction hash: ${shortenAddress(
+          hash
+        )}`,
         variant: "success",
         anchorOrigin: { vertical: "top", horizontal: "right" },
       });
