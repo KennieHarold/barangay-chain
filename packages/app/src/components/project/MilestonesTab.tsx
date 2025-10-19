@@ -36,7 +36,7 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
     number | null
   >(null);
   const [description, setDescription] = useState("");
-  const [attachmentUri, setAttachmentUri] = useState("");
+  const [file, setFile] = useState<File | null>(null);
 
   const { data: isContractor } = useHasRole(
     UserRole.Contractor,
@@ -58,7 +58,7 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
     setSubmitDialogOpen(false);
     setSelectedMilestoneIndex(null);
     setDescription("");
-    setAttachmentUri("");
+    setFile(null);
   };
 
   const handleSubmitMilestone = () => {};
@@ -197,10 +197,10 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
         open={submitDialogOpen}
         milestoneIndex={selectedMilestoneIndex}
         description={description}
-        attachmentUri={attachmentUri}
+        file={file}
         onClose={handleCloseSubmitDialog}
         onDescriptionChange={setDescription}
-        onAttachmentUriChange={setAttachmentUri}
+        onFileChange={setFile}
         onSubmit={handleSubmitMilestone}
       />
     </Box>
