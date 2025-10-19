@@ -198,7 +198,19 @@ export function useFetchProjectEventLogs(projectId: number) {
         ...milestoneCompletedLogs,
       ].sort((a, b) => Number(a.blockNumber) - Number(b.blockNumber));
 
-      return logs;
+      const logsWithTimestamps = await Promise.all(
+        logs.map(async (log) => {
+          const block = await publicClient.getBlock({
+            blockNumber: log.blockNumber,
+          });
+          return {
+            ...log,
+            timestamp: new Date(Number(block.timestamp) * 1000),
+          };
+        })
+      );
+
+      return logsWithTimestamps;
     },
     enabled: !!publicClient && projectId !== undefined,
   });

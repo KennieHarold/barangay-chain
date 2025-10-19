@@ -16,31 +16,19 @@ import {
 } from "@mui/material";
 
 import { shortenAddress } from "@/utils/format";
-import { mockLogs } from "@/data/mockLogs";
 import { useFetchProjectEventLogs } from "@/hooks/useBarangayChain";
+import {
+  getActorFromEventArgs,
+  getDetailsFromEventName,
+  getEventColor,
+} from "@/utils/events";
 
 interface ActivityLogsTabProps {
   projectId: number;
 }
 
 export function ActivityLogsTab({ projectId }: ActivityLogsTabProps) {
-  const { data } = useFetchProjectEventLogs(projectId);
-  console.log(data);
-
-  const getEventColor = (event: string) => {
-    switch (event) {
-      case "ProjectCreated":
-        return "primary";
-      case "MilestoneSubmitted":
-        return "info";
-      case "MilestoneVerified":
-        return "success";
-      case "MilestoneCompleted":
-        return "success";
-      default:
-        return "default";
-    }
-  };
+  const { data: logs } = useFetchProjectEventLogs(projectId);
 
   return (
     <Box>
@@ -77,7 +65,7 @@ export function ActivityLogsTab({ projectId }: ActivityLogsTabProps) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {mockLogs.length === 0 ? (
+              {logs && logs.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} align="center">
                     <Typography color="text.secondary" py={4}>
@@ -86,12 +74,12 @@ export function ActivityLogsTab({ projectId }: ActivityLogsTabProps) {
                   </TableCell>
                 </TableRow>
               ) : (
-                mockLogs.map((log) => (
-                  <TableRow key={log.id} hover>
+                logs?.map((log) => (
+                  <TableRow key={log.transactionHash} hover>
                     <TableCell>
                       <Chip
-                        label={log.event}
-                        color={getEventColor(log.event)}
+                        label={log.eventName}
+                        color={getEventColor(log.eventName)}
                         size="small"
                         sx={{ fontWeight: "bold" }}
                       />
@@ -99,8 +87,7 @@ export function ActivityLogsTab({ projectId }: ActivityLogsTabProps) {
                     <TableCell>
                       <Typography variant="body2">
                         {log.timestamp.toLocaleDateString()}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
+                        {" - "}
                         {log.timestamp.toLocaleTimeString()}
                       </Typography>
                     </TableCell>
@@ -113,11 +100,15 @@ export function ActivityLogsTab({ projectId }: ActivityLogsTabProps) {
                           "&:hover": { textDecoration: "underline" },
                         }}
                       >
-                        {shortenAddress(log.sender as Address)}
+                        {shortenAddress(
+                          getActorFromEventArgs(log.eventName, log.args)
+                        )}
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2">{log.details}</Typography>
+                      <Typography variant="body2">
+                        {getDetailsFromEventName(log.eventName)}
+                      </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography
@@ -129,11 +120,11 @@ export function ActivityLogsTab({ projectId }: ActivityLogsTabProps) {
                           "&:hover": { textDecoration: "underline" },
                         }}
                         component="a"
-                        href={`https://sepolia.arbiscan.io/tx/${log.txHash}`}
+                        href={`https://sepolia.arbiscan.io/tx/${log.transactionHash}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        {shortenAddress(log.txHash as Address)}
+                        {shortenAddress(log.transactionHash as Address)}
                       </Typography>
                     </TableCell>
                   </TableRow>

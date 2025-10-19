@@ -19,14 +19,6 @@ export default function ProjectDetailPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [mounted, setMounted] = useState(false);
 
-  if (!project) {
-    return (
-      <Container sx={{ py: 4 }}>
-        <Box>Project not found</Box>
-      </Container>
-    );
-  }
-
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
@@ -38,23 +30,29 @@ export default function ProjectDetailPage() {
   return mounted ? (
     <div>
       <Navbar />
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <ProjectHeader project={project} />
+      {project ? (
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          <ProjectHeader project={project} />
 
-        <Box sx={{ borderBottom: 1, borderColor: "divider", mt: 4 }}>
-          <Tabs value={activeTab} onChange={handleTabChange}>
-            <Tab label="Milestones" />
-            <Tab label="Budget" />
-            <Tab label="Activity Logs" />
-          </Tabs>
-        </Box>
+          <Box sx={{ borderBottom: 1, borderColor: "divider", mt: 4 }}>
+            <Tabs value={activeTab} onChange={handleTabChange}>
+              <Tab label="Milestones" />
+              <Tab label="Budget" />
+              <Tab label="Activity Logs" />
+            </Tabs>
+          </Box>
 
-        <Box sx={{ mt: 3 }}>
-          {activeTab === 0 && <MilestonesTab project={project} />}
-          {activeTab === 1 && <BudgetTab project={project} />}
-          {activeTab === 2 && <ActivityLogsTab projectId={project.id} />}
-        </Box>
-      </Container>
+          <Box sx={{ mt: 3 }}>
+            {activeTab === 0 && <MilestonesTab project={project} />}
+            {activeTab === 1 && <BudgetTab project={project} />}
+            {activeTab === 2 && <ActivityLogsTab projectId={project.id} />}
+          </Box>
+        </Container>
+      ) : (
+        <Container sx={{ py: 4 }}>
+          <Box>Project not found</Box>
+        </Container>
+      )}
     </div>
   ) : (
     <></>
