@@ -57,6 +57,7 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
 
   return (
     <Card
+      onClick={handleViewDetails}
       sx={{
         height: "100%",
         display: "flex",
@@ -129,17 +130,6 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
           </Typography>
         </Box>
       </CardContent>
-      <CardActions sx={{ p: 2, pt: 0 }}>
-        <Button
-          size="small"
-          variant="outlined"
-          fullWidth
-          sx={{ borderRadius: "20px" }}
-          onClick={handleViewDetails}
-        >
-          View Details
-        </Button>
-      </CardActions>
     </Card>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { injected } from "wagmi/connectors";
 import {
@@ -88,8 +89,9 @@ export function Navbar() {
             sx={{ flexGrow: 1 }}
             fontWeight="bold"
           >
-            Barangay Chain
+            <Link href={"/"}>Barangay Chain</Link>
           </Typography>
+
           <Button
             color="inherit"
             onClick={handleClick}
