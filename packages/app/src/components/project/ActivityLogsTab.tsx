@@ -17,8 +17,16 @@ import {
 
 import { shortenAddress } from "@/utils/format";
 import { mockLogs } from "@/data/mockLogs";
+import { useFetchProjectEventLogs } from "@/hooks/useBarangayChain";
 
-export function ActivityLogsTab() {
+interface ActivityLogsTabProps {
+  projectId: number;
+}
+
+export function ActivityLogsTab({ projectId }: ActivityLogsTabProps) {
+  const { data } = useFetchProjectEventLogs(projectId);
+  console.log(data);
+
   const getEventColor = (event: string) => {
     switch (event) {
       case "ProjectCreated":

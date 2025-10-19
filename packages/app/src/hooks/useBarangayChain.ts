@@ -2,10 +2,18 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
   useReadContract,
+  usePublicClient,
 } from "wagmi";
-import { Address } from "viem";
+import { AbiEvent, Address, PublicClient } from "viem";
+import { useQuery } from "@tanstack/react-query";
 
-import { BARANGAY_CHAIN_ABI } from "@/lib/abi";
+import {
+  BARANGAY_CHAIN_ABI,
+  projectCreated,
+  milestoneSubmitted,
+  milestoneVerified,
+  milestoneCompleted,
+} from "@/lib/abi";
 import { CreateProjectData } from "@/models";
 import { roles } from "@/constants/access";
 
@@ -143,5 +151,55 @@ export function useProjectCounter() {
     ...baseContractArgs,
     functionName: "projectCounter",
     args: [],
+  });
+}
+
+function fetchEventLogsByType(
+  publicClient: PublicClient,
+  event: AbiEvent,
+  projectId: number
+) {
+  return publicClient.getLogs({
+    address: baseContractArgs.address,
+    event,
+    args: {
+      projectId: BigInt(projectId),
+    },
+    fromBlock: BigInt(String(process.env.NEXT_PUBLIC_LAST_PROCESSED_BLOCK)),
+    toBlock: "latest",
+  });
+}
+
+export function useFetchProjectEventLogs(projectId: number) {
+  const publicClient = usePublicClient();
+
+  return useQuery({
+    queryKey: ["projectEventLogs", projectId],
+    queryFn: async () => {
+      if (!publicClient) {
+        throw new Error("Public client not available");
+      }
+      const [
+        projectCreatedLogs,
+        milestoneSubmittedLogs,
+        milestoneVerifiedLogs,
+        milestoneCompletedLogs,
+      ] = await Promise.all([
+        fetchEventLogsByType(publicClient, projectCreated, projectId),
+        fetchEventLogsByType(publicClient, milestoneSubmitted, projectId),
+        fetchEventLogsByType(publicClient, milestoneVerified, projectId),
+        fetchEventLogsByType(publicClient, milestoneCompleted, projectId),
+      ]);
+
+      const logs = [
+        ...projectCreatedLogs,
+        ...milestoneSubmittedLogs,
+        ...milestoneVerifiedLogs,
+        ...milestoneCompletedLogs,
+      ].sort((a, b) => Number(a.blockNumber) - Number(b.blockNumber));
+
+      return logs;
+    },
+    enabled: !!publicClient && projectId !== undefined,
   });
 }

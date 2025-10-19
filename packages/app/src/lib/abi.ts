@@ -1402,3 +1402,19 @@ export const CITIZEN_NFT_ABI = [
     type: "function",
   },
 ] as const;
+
+export const projectCreated = BARANGAY_CHAIN_ABI.find(
+  (item) => item.type === "event" && item.name === "ProjectCreated"
+)!;
+
+export const milestoneSubmitted = BARANGAY_CHAIN_ABI.find(
+  (item) => item.type === "event" && item.name === "MilestoneSubmitted"
+)!;
+
+export const milestoneVerified = BARANGAY_CHAIN_ABI.find(
+  (item) => item.type === "event" && item.name === "MilestoneVerified"
+)!;
+
+export const milestoneCompleted = BARANGAY_CHAIN_ABI.find(
+  (item) => item.type === "event" && item.name === "MilestoneCompleted"
+)!;
