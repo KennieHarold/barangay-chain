@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Box, Container, Grid, Typography } from "@mui/material";
 import { ProjectCard } from "./ProjectCard";
-import { mockProjects } from "@/data/mockProjects";
 import { useProjectCounter } from "@/hooks/useBarangayChain";
 
 export function ProjectsList() {

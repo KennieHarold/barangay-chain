@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Address } from "viem";
+import { Address, zeroAddress } from "viem";
 import { useReadContracts } from "wagmi";
 
 import { MilestoneStatus, Project, ProjectOnChain } from "@/models";
@@ -17,22 +17,18 @@ export function useProjectData(id: number): Project | null {
   const { data: project } = useProjectInfo(id);
   const { info } = parseContractArgsToObject(project) ?? {};
 
-  if (!info) {
-    return null;
-  }
-
   const {
-    proposer,
-    vendor,
-    startDate,
-    endDate,
-    milestoneCount,
-    advancePayment,
-    budget,
-    category,
-    currentMilestone,
-    metadataURI,
-  } = info;
+    proposer = zeroAddress,
+    vendor = zeroAddress,
+    startDate = BigInt(0),
+    endDate = BigInt(0),
+    milestoneCount = 0,
+    advancePayment = BigInt(0),
+    budget = BigInt(0),
+    category = 0,
+    currentMilestone = 0,
+    metadataURI = "",
+  } = info ?? {};
 
   const cid = getCidFromUri(metadataURI || "");
   const { data: rawMetadata } = useFetchMetadataQuery(cid);
@@ -80,6 +76,7 @@ export function useProjectData(id: number): Project | null {
       status: getMilestoneByIndex(data.status),
     };
   });
+
   return {
     id,
     title: metadata.title,

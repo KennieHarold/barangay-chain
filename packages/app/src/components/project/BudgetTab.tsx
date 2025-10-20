@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { formatEther } from "viem";
+import { formatEther, parseEther } from "viem";
 import {
   Box,
   Table,
@@ -16,7 +16,7 @@ import {
   LinearProgress,
 } from "@mui/material";
 
-import { Project } from "@/models";
+import { MilestoneStatus, Project } from "@/models";
 
 interface BudgetTabProps {
   project: Project;
@@ -24,21 +24,34 @@ interface BudgetTabProps {
 
 export function BudgetTab({ project }: BudgetTabProps) {
   const totalBudget = Number(formatEther(project.budget));
+  const advancePayment = Number(formatEther(project.advancePayment));
+  const advancePaymentReleaseBps = (advancePayment / totalBudget) * 100;
 
-  let cumulativeRelease = 0;
+  const advancePaymentSchedule = [
+    {
+      label: "Advance Payment",
+      releasePercentage: advancePaymentReleaseBps,
+      releaseAmount: advancePayment,
+      cumulativeRelease: 0,
+      status: MilestoneStatus.Done,
+      isReleased: true,
+    },
+  ];
 
-  const budgetSchedule = useMemo(
+  const milestoneBudgetSchedule = useMemo(
     () =>
       project.milestones.map((milestone, index) => {
         const releasePercentage = milestone.releaseBps / 100;
         const releaseAmount = (totalBudget * releasePercentage) / 100;
-        cumulativeRelease += releaseAmount;
 
         return {
-          milestone: index + 1,
+          label:
+            index === project.milestoneCount - 1
+              ? "Final Payment"
+              : `Milestone ${index + 1}`,
           releasePercentage,
           releaseAmount,
-          cumulativeRelease,
+          cumulativeRelease: 0,
           status: milestone.status,
           isReleased: milestone.isReleased,
         };
@@ -46,6 +59,7 @@ export function BudgetTab({ project }: BudgetTabProps) {
     [project]
   );
 
+  const budgetSchedule = advancePaymentSchedule.concat(milestoneBudgetSchedule);
   const totalReleased = budgetSchedule
     .filter((item) => item.isReleased)
     .reduce((sum, item) => sum + item.releaseAmount, 0);
@@ -129,9 +143,9 @@ export function BudgetTab({ project }: BudgetTabProps) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {budgetSchedule.map((item) => (
+              {budgetSchedule.map((item, index) => (
                 <TableRow
-                  key={item.milestone}
+                  key={`milestone-actual-index-${index}`}
                   sx={{
                     backgroundColor: item.isReleased
                       ? "success.light"
@@ -140,9 +154,7 @@ export function BudgetTab({ project }: BudgetTabProps) {
                   }}
                 >
                   <TableCell>
-                    <Typography fontWeight="medium">
-                      Milestone {item.milestone}
-                    </Typography>
+                    <Typography fontWeight="medium">{item.label}</Typography>
                   </TableCell>
                   <TableCell align="right">
                     <Typography>{item.releasePercentage}%</Typography>
