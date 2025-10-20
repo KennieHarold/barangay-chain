@@ -113,8 +113,8 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
         description,
         imageUrl,
       });
-      submitMutate(project.id, metadataUrl);
       setAction(MilestoneAction.Submit);
+      submitMutate(project.id, metadataUrl);
     } catch (error) {
       console.error(error);
       enqueueSnackbar({
@@ -127,8 +127,8 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
 
   const handleVerify = (consensus: boolean) => {
     try {
-      verifyMutate(project.id, consensus);
       setAction(MilestoneAction.Verify);
+      verifyMutate(project.id, consensus);
     } catch (error) {
       console.error(error);
       enqueueSnackbar({
@@ -141,8 +141,8 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
 
   const handleCompleteMilestone = () => {
     try {
-      completeMutate(project.id);
       setAction(MilestoneAction.Complete);
+      completeMutate(project.id);
     } catch (error) {
       console.error(error);
       enqueueSnackbar({
@@ -182,8 +182,8 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
 
   useEffect(() => {
     if (submitHash && isSuccessfullySubmitted) {
-      afterAction(submitHash);
       handleCloseSubmitDialog();
+      afterAction(submitHash);
     }
   }, [submitHash, isSuccessfullySubmitted, afterAction]);
 
@@ -339,6 +339,7 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
         onDescriptionChange={setDescription}
         onFileChange={setFile}
         onSubmit={handleSubmitMilestone}
+        loading={isSubmitMilestoneLoading}
       />
     </Box>
   );

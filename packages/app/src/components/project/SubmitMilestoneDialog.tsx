@@ -23,6 +23,7 @@ interface SubmitMilestoneDialogProps {
   milestoneIndex: number | null;
   description: string;
   file: File | null;
+  loading: boolean;
   onClose: () => void;
   onDescriptionChange: (value: string) => void;
   onFileChange: (file: File | null) => void;
@@ -34,6 +35,7 @@ export function SubmitMilestoneDialog({
   milestoneIndex,
   description,
   file,
+  loading,
   onClose,
   onDescriptionChange,
   onFileChange,
@@ -178,9 +180,9 @@ export function SubmitMilestoneDialog({
         <Button
           onClick={onSubmit}
           variant="contained"
-          disabled={!file || !description}
+          disabled={!file || !description || loading}
         >
-          Submit
+          {loading ? "Submitting..." : "Submit"}
         </Button>
       </DialogActions>
     </Dialog>
