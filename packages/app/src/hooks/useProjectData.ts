@@ -1,24 +1,23 @@
+import { useMemo } from "react";
+import { Address } from "viem";
+import { useReadContracts } from "wagmi";
+
 import { MilestoneStatus, Project, ProjectOnChain } from "@/models";
-import { useProjectInfo, useProjectMilestoneInfo } from "./useBarangayChain";
 import { useFetchMetadataQuery } from "./useIPFS";
 import { getCidFromUri } from "@/utils/format";
+import { BARANGAY_CHAIN_ABI } from "@/lib/abi";
+import { useProjectInfo } from "./useBarangayChain";
+
+const baseContractArgs = {
+  address: process.env.NEXT_PUBLIC_BARANGAY_CHAIN_ADDRESS as Address,
+  abi: BARANGAY_CHAIN_ABI,
+};
 
 export function useProjectData(id: number): Project | null {
   const { data: project } = useProjectInfo(id);
   const { info } = parseContractArgsToObject(project) ?? {};
 
-  const cid = getCidFromUri(info?.metadataURI || "");
-  const { data: rawMetadata } = useFetchMetadataQuery(cid);
-  const metadata = rawMetadata?.data?.valueOf() as {
-    title: string;
-    description: string;
-  };
-
-  const { data: milestone0 } = useProjectMilestoneInfo(id, 0);
-  const { data: milestone1 } = useProjectMilestoneInfo(id, 1);
-  const { data: milestone2 } = useProjectMilestoneInfo(id, 2);
-
-  if (!(info && metadata && milestone0 && milestone1 && milestone2)) {
+  if (!info) {
     return null;
   }
 
@@ -27,12 +26,60 @@ export function useProjectData(id: number): Project | null {
     vendor,
     startDate,
     endDate,
+    milestoneCount,
+    advancePayment,
     budget,
     category,
     currentMilestone,
     metadataURI,
   } = info;
 
+  const cid = getCidFromUri(metadataURI || "");
+  const { data: rawMetadata } = useFetchMetadataQuery(cid);
+  const metadata = rawMetadata?.data?.valueOf() as {
+    title: string;
+    description: string;
+  };
+
+  const milestoneContracts = useMemo(() => {
+    if (!milestoneCount) {
+      return [];
+    }
+    return Array.from({ length: milestoneCount }, (_, i) => ({
+      ...baseContractArgs,
+      functionName: "getProjectMilestone" as const,
+      args: [BigInt(id), i] as const,
+    }));
+  }, [id, milestoneCount]);
+
+  const { data: milestonesData } = useReadContracts({
+    contracts: milestoneContracts,
+    query: {
+      enabled: !!info?.milestoneCount && id !== undefined,
+    },
+  });
+
+  const allMilestonesLoaded =
+    milestonesData &&
+    milestonesData.length === milestoneCount &&
+    milestonesData.every((result) => result.status === "success");
+
+  if (!(metadata && allMilestonesLoaded)) {
+    return null;
+  }
+
+  const milestones = milestonesData.map((result) => {
+    const data = result.result!;
+    return {
+      upvotes: parseInt(data.upvotes.toString(), 10),
+      downvotes: parseInt(data.downvotes.toString(), 10),
+      metadataURI: data.metadataURI,
+      releaseBps: data.releaseBps,
+      index: data.index,
+      isReleased: data.isReleased,
+      status: getMilestoneByIndex(data.status),
+    };
+  });
   return {
     id,
     title: metadata.title,
@@ -41,36 +88,13 @@ export function useProjectData(id: number): Project | null {
     vendor,
     startDate,
     endDate,
+    milestoneCount,
+    advancePayment,
     budget,
     category,
     currentMilestone,
     metadataURI,
-    milestones: [
-      {
-        upvotes: parseInt(milestone0.upvotes.toString(), 10),
-        downvotes: parseInt(milestone0.downvotes.toString(), 10),
-        metadataURI: milestone0.metadataURI,
-        releaseBps: milestone0.releaseBps,
-        index: milestone0.index,
-        status: getMilestoneByIndex(milestone0.status),
-      },
-      {
-        upvotes: parseInt(milestone1.upvotes.toString(), 10),
-        downvotes: parseInt(milestone1.downvotes.toString(), 10),
-        metadataURI: milestone1.metadataURI,
-        releaseBps: milestone1.releaseBps,
-        index: milestone1.index,
-        status: getMilestoneByIndex(milestone1.status),
-      },
-      {
-        upvotes: parseInt(milestone2.upvotes.toString(), 10),
-        downvotes: parseInt(milestone2.downvotes.toString(), 10),
-        metadataURI: milestone2.metadataURI,
-        releaseBps: milestone2.releaseBps,
-        index: milestone2.index,
-        status: getMilestoneByIndex(milestone2.status),
-      },
-    ],
+    milestones,
   };
 }
 
@@ -84,10 +108,12 @@ function parseContractArgsToObject(args: any): { info: ProjectOnChain } | null {
       vendor: args[1],
       startDate: args[2],
       endDate: args[3],
-      budget: args[4],
-      category: args[5],
-      currentMilestone: args[6],
-      metadataURI: args[7],
+      milestoneCount: Number(args[4]),
+      advancePayment: args[5],
+      budget: args[6],
+      category: args[7],
+      currentMilestone: args[8],
+      metadataURI: args[9],
     },
   };
 }

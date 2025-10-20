@@ -20,7 +20,7 @@ export function ProjectsList() {
 
   return mounted ? (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      {mockProjects.length === 0 ? (
+      {projectIds.length === 0 ? (
         <Box
           sx={{
             textAlign: "center",

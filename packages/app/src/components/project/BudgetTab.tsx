@@ -16,7 +16,7 @@ import {
   LinearProgress,
 } from "@mui/material";
 
-import { Project, MilestoneStatus } from "@/models";
+import { Project } from "@/models";
 
 interface BudgetTabProps {
   project: Project;
@@ -40,7 +40,7 @@ export function BudgetTab({ project }: BudgetTabProps) {
           releaseAmount,
           cumulativeRelease,
           status: milestone.status,
-          isReleased: milestone.status === MilestoneStatus.Done,
+          isReleased: milestone.isReleased,
         };
       }),
     [project]
