@@ -53,7 +53,7 @@ export function BudgetTab({ project }: BudgetTabProps) {
           releaseAmount,
           cumulativeRelease: 0,
           status: milestone.status,
-          isReleased: milestone.isReleased,
+          isReleased: releaseAmount === 0 ? true : milestone.isReleased,
         };
       }),
     [project]
