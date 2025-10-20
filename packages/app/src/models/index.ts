@@ -27,6 +27,8 @@ export interface Project {
   vendor: Address;
   startDate: bigint;
   endDate: bigint;
+  milestoneCount: number;
+  advancePayment: bigint;
   budget: bigint;
   category: Category;
   currentMilestone: number;
@@ -57,6 +59,7 @@ export interface Milestone {
   metadataURI: string;
   releaseBps: number;
   index: number;
+  isReleased: boolean;
   status: MilestoneStatus;
 }
 
@@ -74,6 +77,8 @@ export interface ProjectOnChain {
   vendor: Address;
   startDate: bigint;
   endDate: bigint;
+  milestoneCount: number;
+  advancePayment: bigint;
   budget: bigint;
   category: number;
   currentMilestone: number;

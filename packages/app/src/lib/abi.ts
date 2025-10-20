@@ -165,6 +165,12 @@ export const BARANGAY_CHAIN_ABI = [
       {
         indexed: false,
         internalType: "uint256",
+        name: "advancePayment",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
         name: "budget",
         type: "uint256",
       },
@@ -185,6 +191,12 @@ export const BARANGAY_CHAIN_ABI = [
         internalType: "uint64",
         name: "endDate",
         type: "uint64",
+      },
+      {
+        indexed: false,
+        internalType: "uint8",
+        name: "milestoneCount",
+        type: "uint8",
       },
       {
         indexed: false,
@@ -396,6 +408,25 @@ export const BARANGAY_CHAIN_ABI = [
         type: "uint256",
       },
     ],
+    name: "amountFundsReleased",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "projectId",
+        type: "uint256",
+      },
+    ],
     name: "completeMilestone",
     outputs: [],
     stateMutability: "nonpayable",
@@ -490,6 +521,11 @@ export const BARANGAY_CHAIN_ABI = [
             internalType: "uint8",
             name: "index",
             type: "uint8",
+          },
+          {
+            internalType: "bool",
+            name: "isReleased",
+            type: "bool",
           },
           {
             internalType: "enum IBarangayChain.MilestoneStatus",
@@ -637,6 +673,16 @@ export const BARANGAY_CHAIN_ABI = [
         internalType: "uint64",
         name: "endDate",
         type: "uint64",
+      },
+      {
+        internalType: "uint8",
+        name: "milestoneCount",
+        type: "uint8",
+      },
+      {
+        internalType: "uint256",
+        name: "advancePayment",
+        type: "uint256",
       },
       {
         internalType: "uint256",
