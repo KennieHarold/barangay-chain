@@ -79,7 +79,7 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
   const [file, setFile] = useState<File | null>(null);
   const [action, setAction] = useState<MilestoneAction | null>(null);
 
-  const isContractor = address === project.proposer;
+  const isContractor = address === project.vendor;
   const { data: isOfficial } = useHasRole(
     UserRole.Official,
     address as Address

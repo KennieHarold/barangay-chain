@@ -32,7 +32,7 @@ export function BudgetTab({ project }: BudgetTabProps) {
       label: "Advance Payment",
       releasePercentage: advancePaymentReleaseBps,
       releaseAmount: advancePayment,
-      cumulativeRelease: 0,
+      cumulativeRelease: advancePayment,
       status: MilestoneStatus.Done,
       isReleased: true,
     },
@@ -59,10 +59,32 @@ export function BudgetTab({ project }: BudgetTabProps) {
     [project]
   );
 
-  const budgetSchedule = advancePaymentSchedule.concat(milestoneBudgetSchedule);
-  const totalReleased = budgetSchedule
-    .filter((item) => item.isReleased)
-    .reduce((sum, item) => sum + item.releaseAmount, 0);
+  const budgetSchedule = useMemo(
+    () =>
+      advancePaymentSchedule
+        .concat(milestoneBudgetSchedule)
+        .map((item, index, arr) => {
+          if (index === 0) {
+            return item;
+          }
+          const cumulativeRelease = arr
+            .slice(0, index + 1)
+            .reduce((sum, curr) => sum + curr.releaseAmount, 0);
+          return {
+            ...item,
+            cumulativeRelease,
+          };
+        }),
+    [advancePaymentSchedule, milestoneBudgetSchedule]
+  );
+
+  const totalReleased = useMemo(
+    () =>
+      budgetSchedule
+        .filter((item) => item.isReleased)
+        .reduce((sum, item) => sum + item.releaseAmount, 0),
+    [budgetSchedule]
+  );
 
   const releaseProgress = (totalReleased / totalBudget) * 100;
 
