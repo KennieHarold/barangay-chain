@@ -154,6 +154,24 @@ export function useProjectCounter() {
   });
 }
 
+export function useHasUserVoted(
+  projectId: number,
+  milestoneIdx: number,
+  userAddress: Address
+) {
+  return useReadContract({
+    ...baseContractArgs,
+    functionName: "getUserMilestoneVerification",
+    args: [BigInt(projectId), milestoneIdx, userAddress],
+    query: {
+      enabled:
+        projectId !== undefined &&
+        milestoneIdx !== undefined &&
+        userAddress !== undefined,
+    },
+  });
+}
+
 function fetchEventLogsByType(
   publicClient: PublicClient,
   event: AbiEvent,

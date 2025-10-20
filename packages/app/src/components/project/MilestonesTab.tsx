@@ -11,20 +11,15 @@ import {
   Chip,
   Button,
   Alert,
-  Divider,
 } from "@mui/material";
-import {
-  ThumbUp as ThumbUpIcon,
-  ThumbDown as ThumbDownIcon,
-  Upload as UploadIcon,
-} from "@mui/icons-material";
+import { Upload as UploadIcon } from "@mui/icons-material";
 import { enqueueSnackbar } from "notistack";
-import { useRouter } from "next/navigation";
 
 import { Project, MilestoneStatus, UserRole } from "@/models";
 import { statusColors, statusLabels } from "@/constants/project";
 import { SubmitMilestoneDialog } from "@/components/project/SubmitMilestoneDialog";
 import { MilestoneMetadata } from "@/components/project/MilestoneMetadata";
+import { VotingSection } from "@/components/project/VotingSection";
 import {
   useCompleteMilestone,
   useHasRole,
@@ -46,7 +41,6 @@ enum MilestoneAction {
 }
 
 export function MilestonesTab({ project }: MilestonesTabProps) {
-  const router = useRouter();
   const { address } = useAccount();
   const { mutateAsync: uploadImageMutate, isPending: isUploadingImage } =
     useUploadImageMutation();
@@ -174,10 +168,10 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
         });
       }
       setTimeout(() => {
-        router.refresh();
-      }, 2000);
+        window.location.reload();
+      }, 1000);
     },
-    [action, router]
+    [action]
   );
 
   useEffect(() => {
@@ -261,34 +255,14 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
               {milestone.status === MilestoneStatus.ForVerification &&
                 isCitizen &&
                 address && (
-                  <Box sx={{ mb: 2 }}>
-                    <Divider sx={{ my: 2 }} />
-                    <Typography variant="subtitle2" gutterBottom>
-                      Community Verification
-                    </Typography>
-                    <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                      <Button
-                        variant="outlined"
-                        color="success"
-                        startIcon={<ThumbUpIcon />}
-                        onClick={() => handleVerify(true)}
-                        disabled={!isCitizen}
-                        loading={isVerifyingMilestone}
-                      >
-                        Upvote ({milestone.upvotes})
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        color="error"
-                        startIcon={<ThumbDownIcon />}
-                        onClick={() => handleVerify(false)}
-                        disabled={!isCitizen}
-                        loading={isVerifyingMilestone}
-                      >
-                        Downvote ({milestone.downvotes})
-                      </Button>
-                    </Box>
-                  </Box>
+                  <VotingSection
+                    projectId={project.id}
+                    milestoneIndex={index}
+                    milestone={milestone}
+                    userAddress={address}
+                    isVerifyingMilestone={isVerifyingMilestone}
+                    onVerify={handleVerify}
+                  />
                 )}
 
               {isContractor &&
@@ -313,12 +287,26 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
               {isOfficial &&
                 milestone.status === MilestoneStatus.ForVerification && (
                   <Box sx={{ mt: 2 }}>
+                    {milestone.upvotes <= milestone.downvotes ||
+                    milestone.upvotes - milestone.downvotes < 5 ? (
+                      <Alert severity="warning" sx={{ mb: 2 }}>
+                        Consensus not yet reached. Requires at least 5 net
+                        upvotes (upvotes - downvotes). Current:{" "}
+                        {milestone.upvotes} upvotes, {milestone.downvotes}{" "}
+                        downvotes ({milestone.upvotes - milestone.downvotes}{" "}
+                        net)
+                      </Alert>
+                    ) : null}
                     <Button
                       variant="contained"
                       color="success"
                       onClick={handleCompleteMilestone}
                       fullWidth
-                      disabled={isCompletingMilestone}
+                      disabled={
+                        isCompletingMilestone ||
+                        milestone.upvotes <= milestone.downvotes ||
+                        milestone.upvotes - milestone.downvotes < 5
+                      }
                     >
                       {isCompletingMilestone
                         ? "Processing..."
