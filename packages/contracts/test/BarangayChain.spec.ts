@@ -145,6 +145,7 @@ describe("BarangayChain", function () {
         0n,
         0n,
         0n,
+        0n,
         "",
       ]);
     });
@@ -196,10 +197,12 @@ describe("BarangayChain", function () {
           1,
           official,
           vendor,
+          parseEther(String(300_000)),
           parseEther(String(1_000_000)),
           0n,
           BigInt(startDate),
           BigInt(endDate),
+          3,
           "ipfs://test-ipfs-hash"
         )
         .to.emit(treasury, "FundsReleased")
@@ -214,6 +217,7 @@ describe("BarangayChain", function () {
         BigInt(startDate),
         BigInt(endDate),
         3n,
+        parseEther(String(300_000)),
         parseEther(String(1_000_000)), // 1 million
         0n,
         0n,
@@ -221,9 +225,9 @@ describe("BarangayChain", function () {
       ]);
 
       const milestones = {
-        0: [0n, 0n, "", 3000n, 0n, 0n],
-        1: [0n, 0n, "", 6000n, 1n, 0n],
-        2: [0n, 0n, "", 1000n, 2n, 0n],
+        0: [0n, 0n, "", 6000n, 0n, false, 0n],
+        1: [0n, 0n, "", 0n, 1n, false, 0n],
+        2: [0n, 0n, "", 1000n, 2n, false, 0n],
       };
       expect(await barangayChain.getProjectMilestone(1n, 0n)).to.be.eqls(
         milestones[0]
@@ -318,7 +322,7 @@ describe("BarangayChain", function () {
       expect(await barangayChain.getUserMilestoneVerification(1n, 0n, alice)).to
         .be.true;
 
-      const milestone = [1n, 0n, "ipfs://test-ipfs-hash", 3000n, 0n, 1n];
+      const milestone = [1n, 0n, "ipfs://test-ipfs-hash", 6000n, 0n, false, 1n];
       expect(await barangayChain.getProjectMilestone(1n, 0n)).to.be.eqls(
         milestone
       );

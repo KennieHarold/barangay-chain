@@ -99,30 +99,43 @@ contract BarangayChain is IBarangayChain, AccessControl {
         projectCounter++;
 
         Project storage project = projects[projectCounter];
+        uint256 advancePayment = (budget * releaseBpsTemplate[0]) / BASIS_POINT;
+
         project.proposer = proposer;
         project.vendor = vendor;
         project.startDate = startDate;
         project.endDate = endDate;
-        project.milestoneCount = releaseBpsTemplate.length;
+        project.milestoneCount = uint8(releaseBpsTemplate.length);
+        project.advancePayment = advancePayment;
         project.budget = budget;
         project.category = category;
         project.currentMilestone = 0;
         project.metadataURI = uri;
 
         for (uint8 i = 0; i < releaseBpsTemplate.length; i++) {
+            uint16 releaseBps = 0;
+
+            if (i == releaseBpsTemplate.length - 1) {
+                releaseBps = releaseBpsTemplate[i];
+            } else if (i == releaseBpsTemplate.length - 2) {
+                releaseBps = 0;
+            } else {
+                releaseBps = releaseBpsTemplate[i + 1];
+            }
+
             project.milestones.push(
                 Milestone({
                     upvotes: 0,
                     downvotes: 0,
                     metadataURI: "",
-                    releaseBps: releaseBpsTemplate[i],
+                    releaseBps: releaseBps,
                     index: i,
-                    status: MilestoneStatus.Pending
+                    status: MilestoneStatus.Pending,
+                    isReleased: false
                 })
             );
         }
 
-        uint256 advancePayment = (budget * releaseBpsTemplate[0]) / BASIS_POINT;
         TREASURY.releaseFunds(vendor, advancePayment, category);
         amountFundsReleased[projectCounter] = advancePayment;
 
@@ -130,10 +143,12 @@ contract BarangayChain is IBarangayChain, AccessControl {
             projectCounter,
             proposer,
             vendor,
+            advancePayment,
             budget,
             category,
             startDate,
             endDate,
+            uint8(releaseBpsTemplate.length),
             uri
         );
     }
@@ -239,27 +254,16 @@ contract BarangayChain is IBarangayChain, AccessControl {
 
         milestone.status = MilestoneStatus.Done;
 
-        uint256 payment = 0;
-        uint8 nextIndex = currentMilestone + 1;
+        uint256 payment = (project.budget * milestone.releaseBps) / BASIS_POINT;
         bool isProjectCompleted = currentMilestone ==
             project.milestones.length - 1;
 
-        if (isProjectCompleted) {
-            payment = (project.budget * milestone.releaseBps) / BASIS_POINT;
-        } else {
-            project.currentMilestone = nextIndex;
-        }
-
-        bool isNextMilestone = project.currentMilestone == nextIndex;
-        bool isBeforeCompletionStage = currentMilestone <
-            project.milestones.length - 2;
-
-        if (isNextMilestone && isBeforeCompletionStage) {
-            Milestone memory nextMilestone = project.milestones[nextIndex];
-            payment = (project.budget * nextMilestone.releaseBps) / BASIS_POINT;
+        if (!isProjectCompleted) {
+            project.currentMilestone = currentMilestone + 1;
         }
         if (payment > 0) {
             amountFundsReleased[projectId] = payment;
+            milestone.isReleased = true;
             TREASURY.releaseFunds(project.vendor, payment, project.category);
         }
 
