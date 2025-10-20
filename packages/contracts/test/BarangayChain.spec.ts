@@ -38,10 +38,9 @@ describe("BarangayChain", function () {
   const VENDOR_ROLE = keccak256(toUtf8Bytes("VENDOR_ROLE"));
 
   before(async function () {
-    const { ethers: networkEthers, networkHelpers: networkHelpers_ } =
-      (await network.connect()) as any;
-    ethers = networkEthers;
-    networkHelpers = networkHelpers_;
+    const provider = await network.connect();
+    ethers = provider.ethers;
+    networkHelpers = provider.networkHelpers;
   });
 
   beforeEach(async function () {
