@@ -1,13 +1,14 @@
 import { MilestoneStatus, Project, ProjectOnChain } from "@/models";
 import { useProjectInfo, useProjectMilestoneInfo } from "./useBarangayChain";
 import { useFetchMetadataQuery } from "./useIPFS";
+import { getCidFromUri } from "@/utils/format";
 
 export function useProjectData(id: number): Project | null {
   const { data: project } = useProjectInfo(id);
   const { info } = parseContractArgsToObject(project) ?? {};
 
-  const cid = info?.metadataURI ? info.metadataURI.split("/").at(-1) : "";
-  const { data: rawMetadata } = useFetchMetadataQuery(cid || "");
+  const cid = getCidFromUri(info?.metadataURI || "");
+  const { data: rawMetadata } = useFetchMetadataQuery(cid);
   const metadata = rawMetadata?.data?.valueOf() as {
     title: string;
     description: string;

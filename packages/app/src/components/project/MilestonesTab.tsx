@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 import { Project, MilestoneStatus, UserRole } from "@/models";
 import { statusColors, statusLabels } from "@/constants/project";
 import { SubmitMilestoneDialog } from "@/components/project/SubmitMilestoneDialog";
+import { MilestoneMetadata } from "@/components/project/MilestoneMetadata";
 import {
   useCompleteMilestone,
   useHasRole,
@@ -257,9 +258,7 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
               </Box>
 
               {milestone?.metadataURI && (
-                <Typography variant="body2" sx={{ mb: 2 }}>
-                  Metadata URI: {milestone.metadataURI}
-                </Typography>
+                <MilestoneMetadata metadataURI={milestone.metadataURI} />
               )}
 
               {milestone.status === MilestoneStatus.ForVerification &&
