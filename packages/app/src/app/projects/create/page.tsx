@@ -106,7 +106,7 @@ const schema: yup.ObjectSchema<ProjectFormData> = yup.object({
           percentage: yup
             .number()
             .required("Percentage is required")
-            .min(0.01, "Percentage must be greater than 0")
+            .min(0, "Percentage cannot be negative")
             .max(100, "Percentage cannot exceed 100"),
         })
         .required()
@@ -126,6 +126,40 @@ const schema: yup.ObjectSchema<ProjectFormData> = yup.object({
           0
         );
         return Math.abs(total - 100) < 0.01; // Allow small floating point errors
+      }
+    )
+    .test(
+      "second-to-last-is-zero",
+      "Second to last milestone must be 0%",
+      (milestones) => {
+        if (!milestones || milestones.length < 2) {
+          return true;
+        }
+        const secondToLastIndex = milestones.length - 2;
+        const secondToLastValue = milestones[secondToLastIndex]?.percentage;
+        return secondToLastValue === 0;
+      }
+    )
+    .test(
+      "advance-payment-positive",
+      "Advance payment (first milestone) must be greater than 0%",
+      (milestones) => {
+        if (!milestones || milestones.length === 0) {
+          return false;
+        }
+        const advancePayment = milestones[0]?.percentage;
+        return advancePayment > 0;
+      }
+    )
+    .test(
+      "final-payment-positive",
+      "Final payment (last milestone) must be greater than 0%",
+      (milestones) => {
+        if (!milestones || milestones.length === 0) {
+          return false;
+        }
+        const finalPayment = milestones[milestones.length - 1]?.percentage;
+        return finalPayment > 0;
       }
     ),
 });
@@ -165,11 +199,16 @@ export default function CreateProjectPage() {
       category: Category.Infrastructure,
       startDate: "",
       endDate: "",
-      milestones: [{ percentage: 30 }, { percentage: 40 }, { percentage: 30 }],
+      milestones: [
+        { percentage: 30 }, // Advance payment
+        { percentage: 40 }, // Milestone 1
+        { percentage: 0 }, // Second to last (always 0)
+        { percentage: 30 }, // Final payment
+      ],
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update, insert } = useFieldArray({
     control,
     name: "milestones",
   });
@@ -186,14 +225,38 @@ export default function CreateProjectPage() {
   }, [milestones]);
 
   const handleAddMilestone = () => {
-    append({ percentage: 0 });
+    // Insert new milestone before the second-to-last (0%) milestone
+    const insertIndex = fields.length - 2; // Before second-to-last
+    insert(insertIndex, { percentage: 0 });
   };
 
   const handleRemoveMilestone = (index: number) => {
-    if (fields.length > MIN_MILESTONES) {
+    // Only allow removing milestones that are not: advance payment, second-to-last, or final payment
+    const isAdvancePayment = index === 0;
+    const isSecondToLast = index === fields.length - 2;
+    const isLastMilestone = index === fields.length - 1;
+
+    if (
+      fields.length > MIN_MILESTONES + 1 &&
+      !isAdvancePayment &&
+      !isSecondToLast &&
+      !isLastMilestone
+    ) {
       remove(index);
     }
   };
+
+  // Effect to ensure second-to-last milestone is always 0
+  useEffect(() => {
+    if (fields.length >= 2) {
+      const secondToLastIndex = fields.length - 2;
+      const secondToLastValue = milestones[secondToLastIndex]?.percentage;
+
+      if (secondToLastValue !== 0) {
+        update(secondToLastIndex, { percentage: 0 });
+      }
+    }
+  }, [fields.length, milestones, update]);
 
   const onSubmit = async (data: ProjectFormData) => {
     try {
@@ -206,9 +269,12 @@ export default function CreateProjectPage() {
         throw new Error("Upload failed: Can't find URL");
       }
 
-      const releaseBpsTemplate = data.milestones.map((milestone) =>
-        Math.round((milestone.percentage / 100) * BASIS_POINTS)
-      );
+      const releaseBpsTemplate = data.milestones
+        .map((milestone) =>
+          Math.round((milestone.percentage / 100) * BASIS_POINTS)
+        )
+        .filter((percentage: number) => percentage > 0);
+
       const startTimestamp = BigInt(
         Math.floor(new Date(data.startDate).getTime() / 1000)
       );
@@ -446,7 +512,8 @@ export default function CreateProjectPage() {
                       Milestone Budget Release
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      Define percentage of budget to release at each milestone
+                      Structure: Advance Payment → Milestones → Reserved (0%) →
+                      Final Payment
                     </Typography>
                   </Box>
                   <Chip
@@ -461,46 +528,92 @@ export default function CreateProjectPage() {
                 </Box>
               </Grid>
 
-              {fields.map((field, index) => (
-                <Grid size={{ xs: 12 }} key={field.id}>
-                  <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                    <Typography
-                      variant="body1"
-                      sx={{ minWidth: 100, fontWeight: "medium" }}
+              {fields.map((field, index) => {
+                const isAdvancePayment = index === 0;
+                const isSecondToLast = index === fields.length - 2;
+                const isLastMilestone = index === fields.length - 1;
+
+                const actualMilestoneNumber =
+                  isAdvancePayment || isSecondToLast || isLastMilestone
+                    ? null
+                    : index;
+
+                let label = "";
+                let helperText = "";
+
+                if (isAdvancePayment) {
+                  label = "Advance Payment";
+                  helperText = "Released immediately upon project creation";
+                } else if (isSecondToLast) {
+                  label = `Verified Milestone ${
+                    actualMilestoneNumber || index
+                  }`;
+                  helperText = "Set to 0% - reserved for final payment";
+                } else if (isLastMilestone) {
+                  label = "Final Payment";
+                  helperText = "Released upon project completion";
+                } else {
+                  label = `Verified Milestone ${actualMilestoneNumber}`;
+                  helperText = "Released after community verification";
+                }
+
+                return (
+                  <Grid size={{ xs: 12 }} key={field.id}>
+                    <Box
+                      sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}
                     >
-                      Milestone {index + 1}
-                    </Typography>
-                    <Controller
-                      name={`milestones.${index}.percentage`}
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          type="number"
-                          slotProps={{
-                            htmlInput: { step: "0.1", min: "0", max: "100" },
-                            input: {
-                              endAdornment: <Typography>%</Typography>,
-                            },
-                          }}
-                          sx={{ width: 150 }}
-                          error={!!errors.milestones?.[index]?.percentage}
-                          helperText={
-                            errors.milestones?.[index]?.percentage?.message
-                          }
-                        />
-                      )}
-                    />
-                    <IconButton
-                      onClick={() => handleRemoveMilestone(index)}
-                      disabled={fields.length <= MIN_MILESTONES}
-                      color="error"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                </Grid>
-              ))}
+                      <Box sx={{ minWidth: 250, pt: 1 }}>
+                        <Typography
+                          variant="body1"
+                          sx={{ fontWeight: "medium" }}
+                        >
+                          {label}
+                        </Typography>
+                        {helperText && (
+                          <Typography variant="caption" color="text.secondary">
+                            {helperText}
+                          </Typography>
+                        )}
+                      </Box>
+                      <Controller
+                        name={`milestones.${index}.percentage`}
+                        control={control}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            type="number"
+                            disabled={isSecondToLast}
+                            slotProps={{
+                              htmlInput: { step: "0.1", min: "0", max: "100" },
+                              input: {
+                                endAdornment: <Typography>%</Typography>,
+                              },
+                            }}
+                            sx={{ width: 150 }}
+                            error={!!errors.milestones?.[index]?.percentage}
+                            helperText={
+                              errors.milestones?.[index]?.percentage?.message
+                            }
+                          />
+                        )}
+                      />
+                      <IconButton
+                        onClick={() => handleRemoveMilestone(index)}
+                        disabled={
+                          fields.length <= MIN_MILESTONES + 1 ||
+                          isSecondToLast ||
+                          isLastMilestone ||
+                          isAdvancePayment
+                        }
+                        color="error"
+                        sx={{ mt: 0.5 }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  </Grid>
+                );
+              })}
 
               <Grid size={{ xs: 12 }}>
                 <Button
