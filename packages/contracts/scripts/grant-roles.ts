@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const { ethers } = await network.connect({
-  network: "arbitrumSepolia",
+  network: "sepolia",
   chainType: "l1",
 });
 
