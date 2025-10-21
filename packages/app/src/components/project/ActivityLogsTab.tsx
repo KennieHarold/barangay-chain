@@ -24,6 +24,7 @@ import {
   getDetailsFromEventName,
   getEventColor,
 } from "@/utils/events";
+import { DEFAULT_CHAIN_ID } from "@/lib/providers";
 
 interface ActivityLogsTabProps {
   projectId: number;
@@ -35,7 +36,7 @@ export function ActivityLogsTab({ projectId }: ActivityLogsTabProps) {
 
   const showAddressTransactions = (address: string) => {
     openPopup({
-      chainId: "1500",
+      chainId: DEFAULT_CHAIN_ID.toString(),
       address,
     });
   };

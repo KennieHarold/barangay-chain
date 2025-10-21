@@ -32,11 +32,19 @@ const config: HardhatUserConfig = {
       type: "edr-simulated",
       chainType: "op",
     },
+    sepolia: {
+      type: "http",
+      chainType: "l1",
+      url: configVariable("SEPOLIA_INFURA_API_URL"),
+      accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
+      chainId: 11155111,
+    },
     arbitrumSepolia: {
       type: "http",
       chainType: "op",
       url: configVariable("ARBITRUM_SEPOLIA_INFURA_API_URL"),
       accounts: [configVariable("ARBITRUM_SEPOLIA_PRIVATE_KEY")],
+      chainId: 421614,
     },
   },
   verify: {
@@ -45,18 +53,6 @@ const config: HardhatUserConfig = {
     },
     blockscout: {
       enabled: true,
-    },
-  },
-  chainDescriptors: {
-    421614: {
-      name: "Arbitrum Sepolia",
-      blockExplorers: {
-        etherscan: {
-          name: "Arbitrum Sepolia",
-          url: "https://sepolia.arbiscan.io",
-          apiUrl: "https://api-sepolia.arbiscan.io/api",
-        },
-      },
     },
   },
 };

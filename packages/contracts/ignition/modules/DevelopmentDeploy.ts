@@ -8,7 +8,7 @@ const DevelopmentDeployModule = buildModule("DevelopmentDeployModule", (m) => {
   const { citizenNFT } = m.useModule(CitizenNFTModule);
 
   // Deploy Treasury
-  const { treasury, usdtMock } = m.useModule(TreasuryModule);
+  const { treasury } = m.useModule(TreasuryModule);
 
   // Deploy Protocol
   const barangayChain = m.contract("BarangayChain", [treasury, citizenNFT]);
@@ -21,7 +21,6 @@ const DevelopmentDeployModule = buildModule("DevelopmentDeployModule", (m) => {
   return {
     citizenNFT,
     treasury,
-    usdtMock,
     barangayChain,
   };
 });

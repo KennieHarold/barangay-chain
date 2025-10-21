@@ -22,7 +22,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { parseEther, Address } from "viem";
+import { Address, parseUnits } from "viem";
 import { enqueueSnackbar } from "notistack";
 import { useAccount } from "wagmi";
 import { useNotification } from "@blockscout/app-sdk";
@@ -33,6 +33,7 @@ import { Navbar } from "@/components/Navbar";
 import { useCreateProject } from "@/hooks/useBarangayChain";
 import { useUploadJsonMutation } from "@/hooks/useIPFS";
 import { MIN_MILESTONES, ProjectFormData, schema } from "./schema";
+import { DEFAULT_CHAIN_ID } from "@/lib/providers";
 
 const BASIS_POINTS = 10000;
 
@@ -155,12 +156,12 @@ export default function CreateProjectPage() {
       const endTimestamp = BigInt(
         Math.floor(new Date(data.endDate).getTime() / 1000)
       );
-      const budgetInWei = parseEther(data.budget);
+      const budgetInUnits = parseUnits(data.budget, 6);
 
       const projectData: CreateProjectData = {
         proposer: data.proposer as Address,
         vendor: data.vendor as Address,
-        budget: budgetInWei,
+        budget: budgetInUnits,
         category: data.category,
         startDate: startTimestamp,
         endDate: endTimestamp,
@@ -181,7 +182,7 @@ export default function CreateProjectPage() {
 
   useEffect(() => {
     if (hash) {
-      openTxToast("1500", hash);
+      openTxToast(DEFAULT_CHAIN_ID.toString(), hash);
     }
   }, [hash]);
 

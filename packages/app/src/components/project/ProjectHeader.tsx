@@ -1,6 +1,6 @@
 "use client";
 
-import { formatEther } from "viem";
+import { formatUnits } from "viem";
 import {
   Box,
   Typography,
@@ -69,7 +69,7 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
               Budget
             </Typography>
             <Typography variant="h5" fontWeight="bold">
-              {formatEther(project.budget)} PYUSD
+              {formatUnits(project.budget, 6)} PYUSD
             </Typography>
           </Box>
         </Grid>

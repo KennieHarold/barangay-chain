@@ -2,16 +2,16 @@
 
 import { useState } from "react";
 import { WagmiProvider, http, createConfig } from "wagmi";
-import { arbitrumSepolia } from "wagmi/chains";
+import { sepolia } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SnackbarProvider } from "notistack";
 import { NotificationProvider } from "@blockscout/app-sdk";
 import { TransactionPopupProvider } from "@blockscout/app-sdk";
 
-export const DEFAULT_CHAIN_ID = 421614;
+export const DEFAULT_CHAIN_ID = 11155111;
 
 const config = createConfig({
-  chains: [arbitrumSepolia],
+  chains: [sepolia],
   transports: {
     [DEFAULT_CHAIN_ID]: http(),
   },

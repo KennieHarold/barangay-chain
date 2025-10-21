@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { formatEther, zeroAddress } from "viem";
+import { formatUnits, zeroAddress } from "viem";
 import {
   Card,
   CardContent,
@@ -96,7 +96,7 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
             Budget
           </Typography>
           <Typography variant="h5" fontWeight="bold">
-            {formatEther(project.budget)} PYUSD
+            {formatUnits(project.budget, 6)} PYUSD
           </Typography>
         </Box>
         <Box sx={{ mb: 2 }}>

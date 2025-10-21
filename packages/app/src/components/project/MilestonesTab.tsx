@@ -29,6 +29,7 @@ import {
 } from "@/hooks/useBarangayChain";
 import { useBalanceOf } from "@/hooks/useCitizenNFT";
 import { useUploadImageMutation, useUploadJsonMutation } from "@/hooks/useIPFS";
+import { DEFAULT_CHAIN_ID } from "@/lib/providers";
 
 interface MilestonesTabProps {
   project: Project;
@@ -142,19 +143,19 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
   useEffect(() => {
     if (submitHash) {
       handleCloseSubmitDialog();
-      openTxToast("1500", submitHash);
+      openTxToast(DEFAULT_CHAIN_ID.toString(), submitHash);
     }
   }, [submitHash]);
 
   useEffect(() => {
     if (verifyHash) {
-      openTxToast("1500", verifyHash);
+      openTxToast(DEFAULT_CHAIN_ID.toString(), verifyHash);
     }
   }, [verifyHash]);
 
   useEffect(() => {
     if (completeHash) {
-      openTxToast("1500", completeHash);
+      openTxToast(DEFAULT_CHAIN_ID.toString(), completeHash);
     }
   }, [completeHash]);
 

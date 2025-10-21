@@ -1,25 +1,15 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { parseEther, ZeroAddress } from "ethers";
+import { ZeroAddress } from "ethers";
 
 const TreasuryModule = buildModule("TreasuryModule", (m) => {
   const initialAdmin = m.getParameter("initialAdmin", m.getAccount(0));
-
-  // Deploy mock USDT token
-  const usdtMock = m.contract(
-    "MockERC20",
-    ["Mock USDT", "USDT", parseEther(String(1_000_000_000_000))],
-    {
-      id: "USDT",
-    }
+  const pyusd = m.getParameter(
+    "pyusd",
+    "0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9"
   );
+  const treasury = m.contract("Treasury", [initialAdmin, ZeroAddress, pyusd]);
 
-  const treasury = m.contract("Treasury", [
-    initialAdmin,
-    ZeroAddress,
-    usdtMock,
-  ]);
-
-  return { treasury, usdtMock };
+  return { treasury };
 });
 
 export default TreasuryModule;

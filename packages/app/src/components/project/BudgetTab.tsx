@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { formatEther, parseEther } from "viem";
+import { formatUnits } from "viem";
 import {
   Box,
   Table,
@@ -23,8 +23,8 @@ interface BudgetTabProps {
 }
 
 export function BudgetTab({ project }: BudgetTabProps) {
-  const totalBudget = Number(formatEther(project.budget));
-  const advancePayment = Number(formatEther(project.advancePayment));
+  const totalBudget = Number(formatUnits(project.budget, 6));
+  const advancePayment = Number(formatUnits(project.advancePayment, 6));
   const advancePaymentReleaseBps = (advancePayment / totalBudget) * 100;
 
   const advancePaymentSchedule = [
