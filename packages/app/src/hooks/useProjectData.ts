@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Address, zeroAddress } from "viem";
 import { useReadContracts } from "wagmi";
 
-import { MilestoneStatus, Project, ProjectOnChain } from "@/models";
+import { Category, MilestoneStatus, Project, ProjectOnChain } from "@/models";
 import { useFetchMetadataQuery } from "./useIPFS";
 import { getCidFromUri } from "@/utils/format";
 import { BARANGAY_CHAIN_ABI } from "@/lib/abi";
@@ -13,8 +13,11 @@ const baseContractArgs = {
   abi: BARANGAY_CHAIN_ABI,
 };
 
-export function useProjectData(id: number): Project | null {
-  const { data: project } = useProjectInfo(id);
+export function useProjectData(id: number): {
+  project: Project;
+  refetchAll: () => Promise<void>;
+} {
+  const { data: project, refetch: refetchProjectInfo } = useProjectInfo(id);
   const { info } = parseContractArgsToObject(project) ?? {};
 
   const {
@@ -48,12 +51,19 @@ export function useProjectData(id: number): Project | null {
     }));
   }, [id, milestoneCount]);
 
-  const { data: milestonesData } = useReadContracts({
-    contracts: milestoneContracts,
-    query: {
-      enabled: !!info?.milestoneCount && id !== undefined,
-    },
-  });
+  const { data: milestonesData, refetch: refetchMilestones } = useReadContracts(
+    {
+      contracts: milestoneContracts,
+      query: {
+        enabled: !!info?.milestoneCount && id !== undefined,
+      },
+    }
+  );
+
+  const refetchAll = async () => {
+    await refetchProjectInfo();
+    await refetchMilestones();
+  };
 
   const allMilestonesLoaded =
     milestonesData &&
@@ -61,7 +71,25 @@ export function useProjectData(id: number): Project | null {
     milestonesData.every((result) => result.status === "success");
 
   if (!(metadata && allMilestonesLoaded)) {
-    return null;
+    return {
+      project: {
+        id: 0,
+        title: "",
+        description: "",
+        proposer: zeroAddress,
+        vendor: zeroAddress,
+        startDate: BigInt(0),
+        endDate: BigInt(0),
+        milestoneCount: 0,
+        advancePayment: BigInt(0),
+        budget: BigInt(0),
+        category: Category.Infrastructure,
+        currentMilestone: 0,
+        metadataURI: "",
+        milestones: [],
+      },
+      refetchAll,
+    };
   }
 
   const milestones = milestonesData.map((result) => {
@@ -78,20 +106,23 @@ export function useProjectData(id: number): Project | null {
   });
 
   return {
-    id,
-    title: metadata.title,
-    description: metadata.description,
-    proposer,
-    vendor,
-    startDate,
-    endDate,
-    milestoneCount,
-    advancePayment,
-    budget,
-    category,
-    currentMilestone,
-    metadataURI,
-    milestones,
+    project: {
+      id,
+      title: metadata.title,
+      description: metadata.description,
+      proposer,
+      vendor,
+      startDate,
+      endDate,
+      milestoneCount,
+      advancePayment,
+      budget,
+      category,
+      currentMilestone,
+      metadataURI,
+      milestones,
+    },
+    refetchAll,
   };
 }
 

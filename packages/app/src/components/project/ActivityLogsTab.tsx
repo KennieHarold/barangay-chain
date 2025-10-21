@@ -17,6 +17,8 @@ import {
 
 import { shortenAddress } from "@/utils/format";
 import { useFetchProjectEventLogs } from "@/hooks/useBarangayChain";
+import { useTransactionPopup } from "@blockscout/app-sdk";
+
 import {
   getActorFromEventArgs,
   getDetailsFromEventName,
@@ -29,6 +31,14 @@ interface ActivityLogsTabProps {
 
 export function ActivityLogsTab({ projectId }: ActivityLogsTabProps) {
   const { data: logs } = useFetchProjectEventLogs(projectId);
+  const { openPopup } = useTransactionPopup();
+
+  const showAddressTransactions = (address: string) => {
+    openPopup({
+      chainId: "1500",
+      address,
+    });
+  };
 
   return (
     <Box>
@@ -93,6 +103,11 @@ export function ActivityLogsTab({ projectId }: ActivityLogsTabProps) {
                     </TableCell>
                     <TableCell>
                       <Typography
+                        onClick={() =>
+                          showAddressTransactions(
+                            getActorFromEventArgs(log.eventName, log.args)
+                          )
+                        }
                         variant="body2"
                         fontFamily="monospace"
                         sx={{

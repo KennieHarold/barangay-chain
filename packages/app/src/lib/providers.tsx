@@ -5,11 +5,15 @@ import { WagmiProvider, http, createConfig } from "wagmi";
 import { arbitrumSepolia } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SnackbarProvider } from "notistack";
+import { NotificationProvider } from "@blockscout/app-sdk";
+import { TransactionPopupProvider } from "@blockscout/app-sdk";
+
+export const DEFAULT_CHAIN_ID = 421614;
 
 const config = createConfig({
   chains: [arbitrumSepolia],
   transports: {
-    421614: http(),
+    [DEFAULT_CHAIN_ID]: http(),
   },
 });
 
@@ -19,7 +23,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <SnackbarProvider>{children}</SnackbarProvider>
+        <NotificationProvider>
+          <TransactionPopupProvider>
+            <SnackbarProvider>{children}</SnackbarProvider>
+          </TransactionPopupProvider>
+        </NotificationProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { Address } from "viem";
 import {
@@ -13,6 +13,7 @@ import {
   Alert,
 } from "@mui/material";
 import { Upload as UploadIcon } from "@mui/icons-material";
+import { useNotification } from "@blockscout/app-sdk";
 import { enqueueSnackbar } from "notistack";
 
 import { Project, MilestoneStatus, UserRole } from "@/models";
@@ -28,20 +29,15 @@ import {
 } from "@/hooks/useBarangayChain";
 import { useBalanceOf } from "@/hooks/useCitizenNFT";
 import { useUploadImageMutation, useUploadJsonMutation } from "@/hooks/useIPFS";
-import { shortenAddress } from "@/utils/format";
 
 interface MilestonesTabProps {
   project: Project;
+  refetch: () => Promise<void>;
 }
 
-enum MilestoneAction {
-  Submit,
-  Complete,
-  Verify,
-}
-
-export function MilestonesTab({ project }: MilestonesTabProps) {
+export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
   const { address } = useAccount();
+  const { openTxToast } = useNotification();
   const { mutateAsync: uploadImageMutate, isPending: isUploadingImage } =
     useUploadImageMutation();
   const { mutateAsync: uploadJsonMutate, isPending: isUploadingJson } =
@@ -71,7 +67,6 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
   >(null);
   const [description, setDescription] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [action, setAction] = useState<MilestoneAction | null>(null);
 
   const isContractor = address === project.vendor;
   const { data: isOfficial } = useHasRole(
@@ -107,7 +102,6 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
         description,
         imageUrl,
       });
-      setAction(MilestoneAction.Submit);
       submitMutate(project.id, metadataUrl);
     } catch (error) {
       console.error(error);
@@ -121,7 +115,6 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
 
   const handleVerify = (consensus: boolean) => {
     try {
-      setAction(MilestoneAction.Verify);
       verifyMutate(project.id, consensus);
     } catch (error) {
       console.error(error);
@@ -135,7 +128,6 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
 
   const handleCompleteMilestone = () => {
     try {
-      setAction(MilestoneAction.Complete);
       completeMutate(project.id);
     } catch (error) {
       console.error(error);
@@ -147,51 +139,38 @@ export function MilestonesTab({ project }: MilestonesTabProps) {
     }
   };
 
-  const afterAction = useCallback(
-    (hash: Address) => {
-      const message =
-        action === MilestoneAction.Submit
-          ? "submitted"
-          : action === MilestoneAction.Verify
-          ? "verified"
-          : action === MilestoneAction.Complete
-          ? "completed"
-          : "";
-
-      if (message && action) {
-        enqueueSnackbar({
-          message: `Successfully ${message} milestone with transaction hash: ${shortenAddress(
-            hash
-          )}`,
-          variant: "success",
-          anchorOrigin: { vertical: "top", horizontal: "right" },
-        });
-      }
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    },
-    [action]
-  );
-
   useEffect(() => {
-    if (submitHash && isSuccessfullySubmitted) {
+    if (submitHash) {
       handleCloseSubmitDialog();
-      afterAction(submitHash);
+      openTxToast("1500", submitHash);
     }
-  }, [submitHash, isSuccessfullySubmitted, afterAction]);
+  }, [submitHash]);
 
   useEffect(() => {
-    if (verifyHash && isSuccessfullyVerified) {
-      afterAction(verifyHash);
+    if (verifyHash) {
+      openTxToast("1500", verifyHash);
     }
-  }, [verifyHash, isSuccessfullyVerified, afterAction]);
+  }, [verifyHash]);
 
   useEffect(() => {
-    if (completeHash && isSuccessfullyCompleted) {
-      afterAction(completeHash);
+    if (completeHash) {
+      openTxToast("1500", completeHash);
     }
-  }, [completeHash, isSuccessfullyCompleted, afterAction]);
+  }, [completeHash]);
+
+  useEffect(() => {
+    if (
+      isSuccessfullySubmitted ||
+      isSuccessfullyVerified ||
+      isSuccessfullyCompleted
+    ) {
+      refetch();
+    }
+  }, [
+    isSuccessfullySubmitted,
+    isSuccessfullyVerified,
+    isSuccessfullyCompleted,
+  ]);
 
   return (
     <Box>

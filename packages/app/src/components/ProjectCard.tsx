@@ -1,16 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { formatEther } from "viem";
+import { formatEther, zeroAddress } from "viem";
 import {
   Card,
   CardContent,
-  CardActions,
   Typography,
   Box,
   Chip,
   LinearProgress,
-  Button,
 } from "@mui/material";
 
 import { statusColors, statusLabels } from "@/constants/project";
@@ -24,7 +22,7 @@ interface ProjectCardProps {
 
 export function ProjectCard({ projectId }: ProjectCardProps) {
   const router = useRouter();
-  const project = useProjectData(projectId);
+  const { project } = useProjectData(projectId);
 
   const currentMilestone =
     project?.milestones && typeof project?.currentMilestone === "number"
@@ -46,7 +44,7 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
 
   if (
     !(
-      project &&
+      project.proposer !== zeroAddress &&
       currentMilestone &&
       typeof completedMilestones === "number" &&
       typeof progress === "number"

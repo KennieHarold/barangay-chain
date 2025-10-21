@@ -34,23 +34,25 @@ const config: HardhatUserConfig = {
     },
     arbitrumSepolia: {
       type: "http",
-      chainType: "l1",
+      chainType: "op",
       url: configVariable("ARBITRUM_SEPOLIA_INFURA_API_URL"),
       accounts: [configVariable("ARBITRUM_SEPOLIA_PRIVATE_KEY")],
-      chainId: 421614,
     },
   },
   verify: {
     etherscan: {
       apiKey: configVariable("ETHERSCAN_V2_API_KEY"),
     },
+    blockscout: {
+      enabled: true,
+    },
   },
   chainDescriptors: {
     421614: {
-      name: "ArbitrumSepolia",
+      name: "Arbitrum Sepolia",
       blockExplorers: {
         etherscan: {
-          name: "ArbiscanSepolia",
+          name: "Arbitrum Sepolia",
           url: "https://sepolia.arbiscan.io",
           apiUrl: "https://api-sepolia.arbiscan.io/api",
         },

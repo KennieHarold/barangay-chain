@@ -44,9 +44,14 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
             {project.title}
           </Typography>
           <Chip
-            label={statusLabels[currentMilestone.status]}
+            label={
+              statusLabels[currentMilestone?.status || MilestoneStatus.Pending]
+            }
             sx={{
-              backgroundColor: statusColors[currentMilestone.status],
+              backgroundColor:
+                statusColors[
+                  currentMilestone?.status || MilestoneStatus.Pending
+                ],
               color: "white",
               fontWeight: "bold",
             }}
