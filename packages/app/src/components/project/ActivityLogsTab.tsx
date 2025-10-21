@@ -136,7 +136,7 @@ export function ActivityLogsTab({ projectId }: ActivityLogsTabProps) {
                           "&:hover": { textDecoration: "underline" },
                         }}
                         component="a"
-                        href={`https://sepolia.arbiscan.io/tx/${log.transactionHash}`}
+                        href={`https://eth-sepolia.blockscout.com/tx/${log.transactionHash}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
