@@ -22,7 +22,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { parseEther, isAddress } from "viem";
+import { parseEther, isAddress, Address } from "viem";
 import { enqueueSnackbar } from "notistack";
 import { useAccount } from "wagmi";
 import * as yup from "yup";
@@ -208,7 +208,7 @@ export default function CreateProjectPage() {
     },
   });
 
-  const { fields, append, remove, update, insert } = useFieldArray({
+  const { fields, remove, update, insert } = useFieldArray({
     control,
     name: "milestones",
   });
@@ -284,8 +284,8 @@ export default function CreateProjectPage() {
       const budgetInWei = parseEther(data.budget);
 
       const projectData: CreateProjectData = {
-        proposer: data.proposer as `0x${string}`,
-        vendor: data.vendor as `0x${string}`,
+        proposer: data.proposer as Address,
+        vendor: data.vendor as Address,
         budget: budgetInWei,
         category: data.category,
         startDate: startTimestamp,

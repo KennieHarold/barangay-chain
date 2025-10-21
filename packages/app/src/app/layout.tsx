@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Barangay Chain",
+  title: "BarangayChain",
   description: "Blockchain-powered accountability system",
 };
 

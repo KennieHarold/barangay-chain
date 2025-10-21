@@ -89,7 +89,7 @@ export function Navbar() {
             sx={{ flexGrow: 1 }}
             fontWeight="bold"
           >
-            <Link href={"/"}>Barangay Chain</Link>
+            <Link href={"/"}>BarangayChain</Link>
           </Typography>
 
           <Button
