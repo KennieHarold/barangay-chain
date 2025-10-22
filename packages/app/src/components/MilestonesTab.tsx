@@ -18,9 +18,9 @@ import { enqueueSnackbar } from "notistack";
 
 import { Project, MilestoneStatus, UserRole } from "@/models";
 import { statusColors, statusLabels } from "@/constants/project";
-import { SubmitMilestoneDialog } from "@/components/project/SubmitMilestoneDialog";
-import { MilestoneMetadata } from "@/components/project/MilestoneMetadata";
-import { VotingSection } from "@/components/project/VotingSection";
+import { SubmitMilestoneDialog } from "@/components/SubmitMilestoneDialog";
+import { MilestoneMetadata } from "@/components/MilestoneMetadata";
+import { VotingSection } from "@/components/VotingSection";
 import {
   useCompleteMilestone,
   useHasRole,
@@ -39,10 +39,17 @@ interface MilestonesTabProps {
 export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
   const { address } = useAccount();
   const { openTxToast } = useNotification();
+  const { data: isOfficial } = useHasRole(
+    UserRole.Official,
+    address as Address
+  );
+  const { data: nftBalance } = useBalanceOf(address as Address);
+
   const { mutateAsync: uploadImageMutate, isPending: isUploadingImage } =
     useUploadImageMutation();
   const { mutateAsync: uploadJsonMutate, isPending: isUploadingJson } =
     useUploadJsonMutation();
+
   const {
     mutate: submitMutate,
     hash: submitHash,
@@ -67,14 +74,15 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
     number | null
   >(null);
   const [description, setDescription] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [completionDate, setCompletionDate] = useState("");
+  const [siteProgressFiles, setSiteProgressFiles] = useState<File[]>([]);
+  const [receiptFiles, setReceiptFiles] = useState<File[]>([]);
+  const [uploadingSiteProgress, setUploadingSiteProgress] = useState(false);
+  const [uploadingReceipts, setUploadingReceipts] = useState(false);
+  const [siteProgressUrls, setSiteProgressUrls] = useState<string[]>([]);
+  const [receiptUrls, setReceiptUrls] = useState<string[]>([]);
 
   const isContractor = address === project.vendor;
-  const { data: isOfficial } = useHasRole(
-    UserRole.Official,
-    address as Address
-  );
-  const { data: nftBalance } = useBalanceOf(address as Address);
   const isCitizen = BigInt(nftBalance || 0) > BigInt(0);
 
   const isSubmitMilestoneLoading =
@@ -89,20 +97,93 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
     setSubmitDialogOpen(false);
     setSelectedMilestoneIndex(null);
     setDescription("");
-    setFile(null);
+    setCompletionDate("");
+    setSiteProgressFiles([]);
+    setReceiptFiles([]);
+    setSiteProgressUrls([]);
+    setReceiptUrls([]);
+  };
+
+  const handleUploadSiteProgress = async () => {
+    try {
+      if (siteProgressFiles.length === 0) {
+        throw new Error("No site progress files selected");
+      }
+
+      setUploadingSiteProgress(true);
+      const uploadedUrls: string[] = [];
+
+      for (const file of siteProgressFiles) {
+        const url = await uploadImageMutate(file);
+        uploadedUrls.push(url);
+      }
+
+      setSiteProgressUrls(uploadedUrls);
+      enqueueSnackbar({
+        message: "Site progress images uploaded successfully",
+        variant: "success",
+        anchorOrigin: { vertical: "top", horizontal: "right" },
+      });
+    } catch (error) {
+      console.error(error);
+      enqueueSnackbar({
+        message: `Error uploading site progress: ${error}`,
+        variant: "error",
+        anchorOrigin: { vertical: "top", horizontal: "right" },
+      });
+    } finally {
+      setUploadingSiteProgress(false);
+    }
+  };
+
+  const handleUploadReceipts = async () => {
+    try {
+      if (receiptFiles.length === 0) {
+        throw new Error("No receipt files selected");
+      }
+
+      setUploadingReceipts(true);
+      const uploadedUrls: string[] = [];
+
+      for (const file of receiptFiles) {
+        const url = await uploadImageMutate(file);
+        uploadedUrls.push(url);
+      }
+
+      setReceiptUrls(uploadedUrls);
+      enqueueSnackbar({
+        message: "Receipt images uploaded successfully",
+        variant: "success",
+        anchorOrigin: { vertical: "top", horizontal: "right" },
+      });
+    } catch (error) {
+      console.error(error);
+      enqueueSnackbar({
+        message: `Error uploading receipts: ${error}`,
+        variant: "error",
+        anchorOrigin: { vertical: "top", horizontal: "right" },
+      });
+    } finally {
+      setUploadingReceipts(false);
+    }
   };
 
   const handleSubmitMilestone = async () => {
     try {
-      if (!file || !description) {
-        throw new Error("Some fields are not completed");
+      if (!description || !completionDate) {
+        throw new Error("Please fill in all required fields");
+      }
+      if (siteProgressUrls.length === 0 || receiptUrls.length === 0) {
+        throw new Error("Please upload both site progress and receipt images");
       }
 
-      const imageUrl = await uploadImageMutate(file);
       const metadataUrl = await uploadJsonMutate({
         description,
-        imageUrl,
+        completionDate,
+        siteProgressUrls,
+        receiptUrls,
       });
+
       submitMutate(project.id, metadataUrl);
     } catch (error) {
       console.error(error);
@@ -302,12 +383,20 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
         open={submitDialogOpen}
         milestoneIndex={selectedMilestoneIndex}
         description={description}
-        file={file}
+        completionDate={completionDate}
+        siteProgressFiles={siteProgressFiles}
+        receiptFiles={receiptFiles}
+        uploadingSiteProgress={uploadingSiteProgress}
+        uploadingReceipts={uploadingReceipts}
         onClose={handleCloseSubmitDialog}
         onDescriptionChange={setDescription}
-        onFileChange={setFile}
+        onCompletionDateChange={setCompletionDate}
+        onSiteProgressFilesChange={setSiteProgressFiles}
+        onReceiptFilesChange={setReceiptFiles}
+        onUploadSiteProgress={handleUploadSiteProgress}
+        onUploadReceipts={handleUploadReceipts}
         onSubmit={handleSubmitMilestone}
-        loading={isSubmitMilestoneLoading}
+        loading={isSubmittingMilestone}
       />
     </Box>
   );

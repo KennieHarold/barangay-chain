@@ -6,10 +6,10 @@ import { Container, Box, Tabs, Tab } from "@mui/material";
 import { zeroAddress } from "viem";
 
 import { Navbar } from "@/components/Navbar";
-import { ProjectHeader } from "@/components/project/ProjectHeader";
-import { MilestonesTab } from "@/components/project/MilestonesTab";
-import { BudgetTab } from "@/components/project/BudgetTab";
-import { ActivityLogsTab } from "@/components/project/ActivityLogsTab";
+import { ProjectHeader } from "@/components/ProjectHeader";
+import { MilestonesTab } from "@/components/MilestonesTab";
+import { BudgetTab } from "@/components/BudgetTab";
+import { ActivityLogsTab } from "@/components/ActivityLogsTab";
 import { useProjectData } from "@/hooks/useProjectData";
 
 export default function ProjectDetailPage() {
