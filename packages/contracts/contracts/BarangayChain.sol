@@ -24,6 +24,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
     // State variables
     uint256 public projectCounter;
 
+    // Mappings
     mapping(uint256 projectId => Project) public projects;
     mapping(uint256 projectId => uint256 amount) public amountFundsReleased;
     mapping(bytes32 key => bool consensus) private userVerifications;

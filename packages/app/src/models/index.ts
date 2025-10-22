@@ -84,3 +84,12 @@ export interface ProjectOnChain {
   currentMilestone: number;
   metadataURI: string;
 }
+
+export interface Contractor {
+  id: number;
+  name: string;
+  address: string;
+  walletAddress: Address;
+  totalProjects: number;
+  totalDisbursement: string;
+}
