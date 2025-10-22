@@ -15,6 +15,8 @@ import type { Treasury } from "../types/ethers-contracts/Treasury.js";
 import type { CitizenNFT } from "../types/ethers-contracts/CitizenNFT.js";
 import type { MockERC20 } from "../types/ethers-contracts/index.js";
 
+export const BASE_URI = "http://scarlet-inc-buzzard-641.mypinata.cloud/ipfs/";
+
 describe("BarangayChain", function () {
   let ethers: any;
   let networkHelpers: any;
@@ -81,12 +83,12 @@ describe("BarangayChain", function () {
     await barangayChain.grantRole(VENDOR_ROLE, vendor);
 
     // Mint CitizenNFT
-    await citizenNFT.safeMint(alice);
-    await citizenNFT.safeMint(bob);
-    await citizenNFT.safeMint(dave);
-    await citizenNFT.safeMint(james);
-    await citizenNFT.safeMint(billy);
-    await citizenNFT.safeMint(john);
+    await citizenNFT.safeMint(alice, "1");
+    await citizenNFT.safeMint(bob, "2");
+    await citizenNFT.safeMint(dave, "3");
+    await citizenNFT.safeMint(james, "4");
+    await citizenNFT.safeMint(billy, "5");
+    await citizenNFT.safeMint(john, "6");
   });
 
   async function timeTravel(seconds: number) {
@@ -104,7 +106,7 @@ describe("BarangayChain", function () {
       0n,
       BigInt(startDate),
       BigInt(endDate),
-      "ipfs://test-ipfs-hash",
+      `${BASE_URI}test-ipfs-hash`,
       [3000n, 6000n, 1000n]
     );
 
@@ -114,7 +116,7 @@ describe("BarangayChain", function () {
   async function submitMilestone(projectId: bigint) {
     await barangayChain
       .connect(vendor)
-      .submitMilestone(projectId, "ipfs://test-ipfs-hash");
+      .submitMilestone(projectId, `${BASE_URI}test-ipfs-hash`);
   }
 
   describe("Deployment", function () {
@@ -172,7 +174,7 @@ describe("BarangayChain", function () {
           0n,
           BigInt(startDate),
           BigInt(endDate),
-          "ipfs://test-ipfs-hash",
+          `${BASE_URI}test-ipfs-hash`,
           [3000n, 6000n, 1000n]
         )
       ).to.be.rejectedWith("BarangayChain: Not an official");
@@ -187,7 +189,7 @@ describe("BarangayChain", function () {
           0n,
           BigInt(startDate),
           BigInt(endDate),
-          "ipfs://test-ipfs-hash",
+          `${BASE_URI}test-ipfs-hash`,
           [3000n, 6000n, 1000n]
         )
       )
@@ -202,7 +204,7 @@ describe("BarangayChain", function () {
           BigInt(startDate),
           BigInt(endDate),
           3,
-          "ipfs://test-ipfs-hash"
+          `${BASE_URI}test-ipfs-hash`
         )
         .to.emit(treasury, "FundsReleased")
         .withArgs(vendor, parseEther(String(300_000)), 0n)
@@ -220,7 +222,7 @@ describe("BarangayChain", function () {
         parseEther(String(1_000_000)), // 1 million
         0n,
         0n,
-        "ipfs://test-ipfs-hash",
+        `${BASE_URI}test-ipfs-hash`,
       ]);
 
       const milestones = {
@@ -248,7 +250,7 @@ describe("BarangayChain", function () {
           0n,
           BigInt(startDate),
           BigInt(endDate),
-          "ipfs://test-ipfs-hash",
+          `${BASE_URI}test-ipfs-hash`,
           [3000n, 7000n]
         )
       ).to.be.rejectedWith(
@@ -266,7 +268,7 @@ describe("BarangayChain", function () {
       await expect(
         barangayChain
           .connect(alice)
-          .submitMilestone(1n, "ipfs://test-ipfs-hash")
+          .submitMilestone(1n, `${BASE_URI}test-ipfs-hash`)
       ).to.be.rejectedWith(
         "BarangayChain::submitMilestone: Only assigned vendor"
       );
@@ -276,10 +278,10 @@ describe("BarangayChain", function () {
       await expect(
         barangayChain
           .connect(vendor)
-          .submitMilestone(1n, "ipfs://test-ipfs-hash")
+          .submitMilestone(1n, `${BASE_URI}test-ipfs-hash`)
       )
         .to.emit(barangayChain, "MilestoneSubmitted")
-        .withArgs(1n, 0n, vendor, "ipfs://test-ipfs-hash");
+        .withArgs(1n, 0n, vendor, `${BASE_URI}test-ipfs-hash`);
     });
 
     it("should revert when submitting another milestone", async function () {
@@ -287,7 +289,7 @@ describe("BarangayChain", function () {
       await expect(
         barangayChain
           .connect(vendor)
-          .submitMilestone(1n, "ipfs://test-ipfs-hash")
+          .submitMilestone(1n, `${BASE_URI}test-ipfs-hash`)
       ).to.be.rejectedWith("BarangayChain::submitMilestone: Invalid status");
     });
 
@@ -296,7 +298,7 @@ describe("BarangayChain", function () {
       await expect(
         barangayChain
           .connect(vendor)
-          .submitMilestone(1n, "ipfs://test-ipfs-hash")
+          .submitMilestone(1n, `${BASE_URI}test-ipfs-hash`)
       ).to.be.rejectedWith("BarangayChain::submitMilestone: Already due");
     });
   });
@@ -321,7 +323,15 @@ describe("BarangayChain", function () {
       expect(await barangayChain.getUserMilestoneVerification(1n, 0n, alice)).to
         .be.true;
 
-      const milestone = [1n, 0n, "ipfs://test-ipfs-hash", 6000n, 0n, false, 1n];
+      const milestone = [
+        1n,
+        0n,
+        `${BASE_URI}test-ipfs-hash`,
+        6000n,
+        0n,
+        false,
+        1n,
+      ];
       expect(await barangayChain.getProjectMilestone(1n, 0n)).to.be.eqls(
         milestone
       );
