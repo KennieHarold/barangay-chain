@@ -79,18 +79,55 @@ export function Navbar() {
     }
   };
 
+  const getNavItems = () => {
+    const items = [];
+    items.push({
+      label: "Registered Contractors",
+      href: "/contractors",
+    });
+
+    if (role === UserRole.Official) {
+      items.push(
+        {
+          label: "Create Project",
+          href: "/projects/create",
+        },
+        {
+          label: "Manage Contractor",
+          href: "/contractors/manage",
+        },
+        {
+          label: "Issue Citizen ID",
+          href: "/citizens/issue",
+        }
+      );
+    }
+
+    return items;
+  };
+
   return mounted ? (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static" color="transparent" variant="outlined">
         <Toolbar>
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{ flexGrow: 1 }}
-            fontWeight="bold"
-          >
+          <Typography variant="h6" component="div" fontWeight="bold">
             <Link href={"/"}>BarangayChain</Link>
           </Typography>
+
+          <Box sx={{ flexGrow: 1, display: "flex", ml: 4, gap: 1 }}>
+            {isConnected &&
+              getNavItems().map((item) => (
+                <Button
+                  key={item.href}
+                  component={Link}
+                  href={item.href}
+                  color="inherit"
+                  sx={{ textTransform: "none" }}
+                >
+                  {item.label}
+                </Button>
+              ))}
+          </Box>
 
           <Button
             color="inherit"

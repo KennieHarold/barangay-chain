@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import Link from "next/link";
 import {
   Box,
   Container,
@@ -27,13 +28,14 @@ import { enqueueSnackbar } from "notistack";
 import { useAccount } from "wagmi";
 import { useNotification } from "@blockscout/app-sdk";
 
-import { Category, CreateProjectData } from "@/models";
+import { Category, CreateProjectData, UserRole } from "@/models";
 import { categoryLabels } from "@/constants/project";
 import { Navbar } from "@/components/Navbar";
 import { useCreateProject } from "@/hooks/useBarangayChain";
 import { useUploadJsonMutation } from "@/hooks/useIPFS";
 import { MIN_MILESTONES, ProjectFormData, schema } from "./schema";
 import { DEFAULT_CHAIN_ID } from "@/lib/providers";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const BASIS_POINTS = 10000;
 
@@ -49,6 +51,7 @@ export default function CreateProjectPage() {
   const { mutateAsync: uploadAsync, isPending: isUploading } =
     useUploadJsonMutation();
   const { openTxToast } = useNotification();
+  const { role, isLoading: isCheckingRole } = useUserRole(address);
 
   const [mounted, setMounted] = useState(false);
 
@@ -196,340 +199,372 @@ export default function CreateProjectPage() {
     setMounted(true);
   }, []);
 
-  return mounted ? (
+  if (isCheckingRole || !mounted) {
+    return <></>;
+  }
+
+  return (
     <>
       <Navbar />
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Box sx={{ mb: 3, display: "flex", alignItems: "center", gap: 2 }}>
-          <IconButton onClick={() => router.back()}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h4" fontWeight="bold">
-            Create New Project
-          </Typography>
-        </Box>
+      {role === UserRole.Official ? (
+        <Container maxWidth="md" sx={{ py: 4 }}>
+          <Box sx={{ mb: 3, display: "flex", alignItems: "center", gap: 2 }}>
+            <IconButton onClick={() => router.back()}>
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography variant="h4" fontWeight="bold">
+              Create New Project
+            </Typography>
+          </Box>
 
-        <Paper sx={{ p: 4, borderRadius: "1em" }}>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <Grid container spacing={3}>
-              <Grid size={{ xs: 12 }}>
-                <Typography variant="h6" gutterBottom>
-                  Project Details
-                </Typography>
-              </Grid>
+          <Paper sx={{ p: 4, borderRadius: "1em" }}>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Project Details
+                  </Typography>
+                </Grid>
 
-              <Grid size={{ xs: 12 }}>
-                <Controller
-                  name="title"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Project Title"
-                      fullWidth
-                      error={!!errors.title}
-                      helperText={errors.title?.message}
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12 }}>
-                <Controller
-                  name="description"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Description"
-                      multiline
-                      rows={4}
-                      fullWidth
-                      error={!!errors.description}
-                      helperText={errors.description?.message}
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  name="proposer"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Proposer Address"
-                      placeholder="0x..."
-                      fullWidth
-                      error={!!errors.proposer}
-                      helperText={
-                        errors.proposer?.message ||
-                        "Wallet address of the project proposer"
-                      }
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  name="vendor"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Vendor Address"
-                      placeholder="0x..."
-                      fullWidth
-                      error={!!errors.vendor}
-                      helperText={
-                        errors.vendor?.message ||
-                        "Wallet address of the contractor/vendor"
-                      }
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  name="budget"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Budget (PYUSD)"
-                      type="number"
-                      slotProps={{ htmlInput: { step: "0.01", min: "0" } }}
-                      fullWidth
-                      error={!!errors.budget}
-                      helperText={errors.budget?.message}
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  name="category"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Category"
-                      select
-                      fullWidth
-                      error={!!errors.category}
-                      helperText={errors.category?.message}
-                    >
-                      {categories.map((cat) => (
-                        <MenuItem key={cat} value={cat}>
-                          {categoryLabels[cat]}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  )}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  name="startDate"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Start Date"
-                      type="date"
-                      fullWidth
-                      slotProps={{ inputLabel: { shrink: true } }}
-                      error={!!errors.startDate}
-                      helperText={errors.startDate?.message}
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  name="endDate"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="End Date"
-                      type="date"
-                      fullWidth
-                      slotProps={{ inputLabel: { shrink: true } }}
-                      error={!!errors.endDate}
-                      helperText={errors.endDate?.message}
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12 }}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mt: 2,
-                  }}
-                >
-                  <Box>
-                    <Typography variant="h6">
-                      Milestone Budget Release
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Structure: Advance Payment → Milestones → Reserved (0%) →
-                      Final Payment
-                    </Typography>
-                  </Box>
-                  <Chip
-                    label={`Total: ${totalPercentage.toFixed(1)}%`}
-                    color={
-                      Math.abs(totalPercentage - 100) < 0.01
-                        ? "success"
-                        : "warning"
-                    }
-                    sx={{ fontWeight: "bold" }}
-                  />
-                </Box>
-              </Grid>
-
-              {fields.map((field, index) => {
-                const isAdvancePayment = index === 0;
-                const isSecondToLast = index === fields.length - 2;
-                const isLastMilestone = index === fields.length - 1;
-
-                const actualMilestoneNumber =
-                  isAdvancePayment || isSecondToLast || isLastMilestone
-                    ? null
-                    : index;
-
-                let label = "";
-                let helperText = "";
-
-                if (isAdvancePayment) {
-                  label = "Advance Payment";
-                  helperText = "Released immediately upon project creation";
-                } else if (isSecondToLast) {
-                  label = `Verified Milestone ${
-                    actualMilestoneNumber || index
-                  }`;
-                  helperText = "Set to 0% - reserved for final payment";
-                } else if (isLastMilestone) {
-                  label = "Final Payment";
-                  helperText = "Released upon project completion";
-                } else {
-                  label = `Verified Milestone ${actualMilestoneNumber}`;
-                  helperText = "Released after community verification";
-                }
-
-                return (
-                  <Grid size={{ xs: 12 }} key={field.id}>
-                    <Box
-                      sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}
-                    >
-                      <Box sx={{ minWidth: 250, pt: 1 }}>
-                        <Typography
-                          variant="body1"
-                          sx={{ fontWeight: "medium" }}
-                        >
-                          {label}
-                        </Typography>
-                        {helperText && (
-                          <Typography variant="caption" color="text.secondary">
-                            {helperText}
-                          </Typography>
-                        )}
-                      </Box>
-                      <Controller
-                        name={`milestones.${index}.percentage`}
-                        control={control}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            type="number"
-                            disabled={isSecondToLast}
-                            slotProps={{
-                              htmlInput: { step: "0.1", min: "0", max: "100" },
-                              input: {
-                                endAdornment: <Typography>%</Typography>,
-                              },
-                            }}
-                            sx={{ width: 150 }}
-                            error={!!errors.milestones?.[index]?.percentage}
-                            helperText={
-                              errors.milestones?.[index]?.percentage?.message
-                            }
-                          />
-                        )}
+                <Grid size={{ xs: 12 }}>
+                  <Controller
+                    name="title"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label="Project Title"
+                        fullWidth
+                        error={!!errors.title}
+                        helperText={errors.title?.message}
                       />
-                      <IconButton
-                        onClick={() => handleRemoveMilestone(index)}
-                        disabled={
-                          fields.length <= MIN_MILESTONES + 1 ||
-                          isSecondToLast ||
-                          isLastMilestone ||
-                          isAdvancePayment
+                    )}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12 }}>
+                  <Controller
+                    name="description"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label="Description"
+                        multiline
+                        rows={4}
+                        fullWidth
+                        error={!!errors.description}
+                        helperText={errors.description?.message}
+                      />
+                    )}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Controller
+                    name="proposer"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label="Proposer Address"
+                        placeholder="0x..."
+                        fullWidth
+                        error={!!errors.proposer}
+                        helperText={
+                          errors.proposer?.message ||
+                          "Wallet address of the project proposer"
                         }
-                        color="error"
-                        sx={{ mt: 0.5 }}
+                      />
+                    )}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Controller
+                    name="vendor"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label="Vendor Address"
+                        placeholder="0x..."
+                        fullWidth
+                        error={!!errors.vendor}
+                        helperText={
+                          errors.vendor?.message ||
+                          "Wallet address of the contractor/vendor"
+                        }
+                      />
+                    )}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Controller
+                    name="budget"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label="Budget (PYUSD)"
+                        type="number"
+                        slotProps={{ htmlInput: { step: "0.01", min: "0" } }}
+                        fullWidth
+                        error={!!errors.budget}
+                        helperText={errors.budget?.message}
+                      />
+                    )}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Controller
+                    name="category"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label="Category"
+                        select
+                        fullWidth
+                        error={!!errors.category}
+                        helperText={errors.category?.message}
                       >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                  </Grid>
-                );
-              })}
+                        {categories.map((cat) => (
+                          <MenuItem key={cat} value={cat}>
+                            {categoryLabels[cat]}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    )}
+                  />
+                </Grid>
 
-              <Grid size={{ xs: 12 }}>
-                <Button
-                  startIcon={<AddIcon />}
-                  onClick={handleAddMilestone}
-                  variant="outlined"
-                >
-                  Add Milestone
-                </Button>
-              </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Controller
+                    name="startDate"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label="Start Date"
+                        type="date"
+                        fullWidth
+                        slotProps={{ inputLabel: { shrink: true } }}
+                        error={!!errors.startDate}
+                        helperText={errors.startDate?.message}
+                      />
+                    )}
+                  />
+                </Grid>
 
-              {errors.milestones &&
-                typeof errors.milestones?.root?.message === "string" && (
-                  <Grid size={{ xs: 12 }}>
-                    <Alert severity="error">
-                      {errors.milestones.root.message}
-                    </Alert>
-                  </Grid>
-                )}
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Controller
+                    name="endDate"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label="End Date"
+                        type="date"
+                        fullWidth
+                        slotProps={{ inputLabel: { shrink: true } }}
+                        error={!!errors.endDate}
+                        helperText={errors.endDate?.message}
+                      />
+                    )}
+                  />
+                </Grid>
 
-              <Grid size={{ xs: 12 }}>
-                <Box
-                  sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}
-                >
-                  <Button variant="outlined" onClick={() => router.back()}>
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    size="large"
-                    disabled={isCreatingProject || isUploading || !isValid}
+                <Grid size={{ xs: 12 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mt: 2,
+                    }}
                   >
-                    {isCreatingProject || isUploading
-                      ? "Simmering..."
-                      : "Create Project"}
+                    <Box>
+                      <Typography variant="h6">
+                        Milestone Budget Release
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Structure: Advance Payment → Milestones → Reserved (0%)
+                        → Final Payment
+                      </Typography>
+                    </Box>
+                    <Chip
+                      label={`Total: ${totalPercentage.toFixed(1)}%`}
+                      color={
+                        Math.abs(totalPercentage - 100) < 0.01
+                          ? "success"
+                          : "warning"
+                      }
+                      sx={{ fontWeight: "bold" }}
+                    />
+                  </Box>
+                </Grid>
+
+                {fields.map((field, index) => {
+                  const isAdvancePayment = index === 0;
+                  const isSecondToLast = index === fields.length - 2;
+                  const isLastMilestone = index === fields.length - 1;
+
+                  const actualMilestoneNumber =
+                    isAdvancePayment || isSecondToLast || isLastMilestone
+                      ? null
+                      : index;
+
+                  let label = "";
+                  let helperText = "";
+
+                  if (isAdvancePayment) {
+                    label = "Advance Payment";
+                    helperText = "Released immediately upon project creation";
+                  } else if (isSecondToLast) {
+                    label = `Verified Milestone ${
+                      actualMilestoneNumber || index
+                    }`;
+                    helperText = "Set to 0% - reserved for final payment";
+                  } else if (isLastMilestone) {
+                    label = "Final Payment";
+                    helperText = "Released upon project completion";
+                  } else {
+                    label = `Verified Milestone ${actualMilestoneNumber}`;
+                    helperText = "Released after community verification";
+                  }
+
+                  return (
+                    <Grid size={{ xs: 12 }} key={field.id}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 2,
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        <Box sx={{ minWidth: 250, pt: 1 }}>
+                          <Typography
+                            variant="body1"
+                            sx={{ fontWeight: "medium" }}
+                          >
+                            {label}
+                          </Typography>
+                          {helperText && (
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {helperText}
+                            </Typography>
+                          )}
+                        </Box>
+                        <Controller
+                          name={`milestones.${index}.percentage`}
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              type="number"
+                              disabled={isSecondToLast}
+                              slotProps={{
+                                htmlInput: {
+                                  step: "0.1",
+                                  min: "0",
+                                  max: "100",
+                                },
+                                input: {
+                                  endAdornment: <Typography>%</Typography>,
+                                },
+                              }}
+                              sx={{ width: 150 }}
+                              error={!!errors.milestones?.[index]?.percentage}
+                              helperText={
+                                errors.milestones?.[index]?.percentage?.message
+                              }
+                            />
+                          )}
+                        />
+                        <IconButton
+                          onClick={() => handleRemoveMilestone(index)}
+                          disabled={
+                            fields.length <= MIN_MILESTONES + 1 ||
+                            isSecondToLast ||
+                            isLastMilestone ||
+                            isAdvancePayment
+                          }
+                          color="error"
+                          sx={{ mt: 0.5 }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    </Grid>
+                  );
+                })}
+
+                <Grid size={{ xs: 12 }}>
+                  <Button
+                    startIcon={<AddIcon />}
+                    onClick={handleAddMilestone}
+                    variant="outlined"
+                  >
+                    Add Milestone
                   </Button>
-                </Box>
+                </Grid>
+
+                {errors.milestones &&
+                  typeof errors.milestones?.root?.message === "string" && (
+                    <Grid size={{ xs: 12 }}>
+                      <Alert severity="error">
+                        {errors.milestones.root.message}
+                      </Alert>
+                    </Grid>
+                  )}
+
+                <Grid size={{ xs: 12 }}>
+                  <Box
+                    sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}
+                  >
+                    <Button variant="outlined" onClick={() => router.back()}>
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      size="large"
+                      disabled={isCreatingProject || isUploading || !isValid}
+                    >
+                      {isCreatingProject || isUploading
+                        ? "Simmering..."
+                        : "Create Project"}
+                    </Button>
+                  </Box>
+                </Grid>
               </Grid>
-            </Grid>
-          </form>
-        </Paper>
-      </Container>
+            </form>
+          </Paper>
+        </Container>
+      ) : (
+        <div className="container mx-auto p-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg shadow p-8 text-center">
+            <h1 className="text-2xl font-bold mb-4 text-red-800">
+              Unauthorized Access
+            </h1>
+            <p className="text-red-700 mb-4">
+              You do not have admin privileges to access this page.
+            </p>
+            <Link
+              href="/"
+              className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Go to Homepage
+            </Link>
+          </div>
+        </div>
+      )}
     </>
-  ) : (
-    <></>
   );
 }
