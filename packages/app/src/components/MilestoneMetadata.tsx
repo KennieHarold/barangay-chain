@@ -4,8 +4,6 @@ import {
   Box,
   Typography,
   CircularProgress,
-  Card,
-  CardMedia,
   Button,
   Dialog,
   DialogTitle,
@@ -152,52 +150,69 @@ export function MilestoneMetadata({ metadataURI }: MilestoneMetadataProps) {
 
   return (
     <>
-      <Box sx={{ mt: 2 }}>
-        <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-          Submission Details
-        </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 2,
+          flexWrap: "wrap",
+        }}
+      >
         {metadata.completionDate && (
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Completion Date:
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+              px: 1.5,
+              py: 0.5,
+              bgcolor: "grey.100",
+              borderRadius: 1,
+            }}
+          >
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontSize: "0.75rem" }}
+            >
+              Completed:
             </Typography>
-            <Typography variant="body2">
+            <Typography
+              variant="caption"
+              fontWeight="600"
+              sx={{ fontSize: "0.75rem" }}
+            >
               {new Date(metadata.completionDate).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
+                month: "short",
                 day: "numeric",
+                year: "numeric",
               })}
             </Typography>
           </Box>
         )}
-        {metadata.imageUrl && (
-          <Card sx={{ mb: 2, maxWidth: 200 }}>
-            <CardMedia
-              component="img"
-              image={metadata.imageUrl}
-              alt="Milestone submission"
-              sx={{
-                objectFit: "contain",
-                maxHeight: 100,
-              }}
-            />
-          </Card>
-        )}
         {metadata.description && (
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Description:
-            </Typography>
-            <Typography variant="body2">{metadata.description}</Typography>
-          </Box>
+          <Typography
+            variant="body2"
+            sx={{
+              flex: 1,
+              fontSize: "0.85rem",
+              color: "text.secondary",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              maxWidth: "400px",
+            }}
+          >
+            {metadata.description}
+          </Typography>
         )}
         <Button
-          variant="outlined"
+          variant="text"
           size="small"
           onClick={() => setModalOpen(true)}
-          sx={{ mt: 1 }}
+          sx={{ ml: "auto", fontSize: "0.75rem" }}
         >
-          See More Details
+          View Details
         </Button>
       </Box>
 

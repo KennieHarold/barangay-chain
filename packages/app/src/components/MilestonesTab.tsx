@@ -268,107 +268,156 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
                 index === project.currentMilestone ? "primary.main" : "divider",
             }}
           >
-            <CardContent>
+            <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
               <Box
                 sx={{
                   display: "flex",
                   justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  mb: 2,
+                  alignItems: "center",
+                  px: 2,
+                  py: 1.25,
+                  borderBottom: "1px solid",
+                  borderColor: "divider",
+                  bgcolor:
+                    index === project.currentMilestone
+                      ? "primary.50"
+                      : "grey.50",
                 }}
               >
-                <Box>
-                  <Typography variant="h6" fontWeight="bold">
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography
+                    variant="h6"
+                    fontWeight="bold"
+                    sx={{ fontSize: "1.05rem" }}
+                  >
                     Milestone {index + 1}
-                    {index === project.currentMilestone && (
-                      <Chip
-                        label="Current"
-                        size="small"
-                        color="primary"
-                        sx={{ ml: 1 }}
-                      />
-                    )}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Release: {milestone.releaseBps / 100}% of budget
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: "text.secondary",
+                      fontWeight: 500,
+                      px: 1,
+                      py: 0.25,
+                      bgcolor: "background.paper",
+                      borderRadius: 0.5,
+                      fontSize: "0.8rem",
+                    }}
+                  >
+                    Release {milestone.releaseBps / 100}%
                   </Typography>
                 </Box>
-                <Chip
-                  label={statusLabels[milestone.status]}
-                  sx={{
-                    backgroundColor: statusColors[milestone.status],
-                    color: "white",
-                    fontWeight: "bold",
-                  }}
-                />
+                <Box>
+                  {index === project.currentMilestone && (
+                    <Chip
+                      label="Current"
+                      color="primary"
+                      sx={{ fontWeight: 600, marginRight: 0.5 }}
+                    />
+                  )}
+                  <Chip
+                    label={statusLabels[milestone.status]}
+                    sx={{
+                      backgroundColor: statusColors[milestone.status],
+                      color: "white",
+                      fontWeight: "bold",
+                    }}
+                  />
+                </Box>
               </Box>
 
-              {milestone?.metadataURI && (
-                <MilestoneMetadata metadataURI={milestone.metadataURI} />
-              )}
-
-              {milestone.status === MilestoneStatus.ForVerification &&
-                isCitizen &&
-                address && (
-                  <VotingSection
-                    projectId={project.id}
-                    milestoneIndex={index}
-                    milestone={milestone}
-                    userAddress={address}
-                    isVerifyingMilestone={isVerifyingMilestone}
-                    onVerify={handleVerify}
-                  />
+              <Box sx={{ px: 2, py: 1.5 }}>
+                {milestone?.metadataURI && (
+                  <MilestoneMetadata metadataURI={milestone.metadataURI} />
                 )}
 
-              {isContractor &&
-                index === project.currentMilestone &&
-                milestone.status === MilestoneStatus.Pending && (
-                  <Box
-                    sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}
-                  >
-                    <Button
-                      variant="contained"
-                      startIcon={<UploadIcon />}
-                      onClick={() => handleOpenSubmitDialog(index)}
-                      disabled={isSubmittingMilestone}
+                {milestone.status === MilestoneStatus.Pending &&
+                  !milestone.metadataURI && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        py: 1,
+                        px: 1.5,
+                        bgcolor: "grey.100",
+                        borderRadius: 1,
+                      }}
                     >
-                      {isSubmittingMilestone
-                        ? "Submitting..."
-                        : "Submit Milestone"}
-                    </Button>
-                  </Box>
-                )}
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ fontSize: "0.85rem" }}
+                      >
+                        This milestone has not started yet
+                      </Typography>
+                    </Box>
+                  )}
 
-              {isOfficial &&
-                milestone.status === MilestoneStatus.ForVerification && (
-                  <Box sx={{ mt: 2 }}>
-                    {milestone.upvotes <= milestone.downvotes ||
-                    milestone.upvotes - milestone.downvotes < 5 ? (
-                      <Alert severity="warning" sx={{ mb: 2 }}>
-                        Consensus not yet reached. Requires at least 5 net
-                        upvotes (upvotes - downvotes). Current:{" "}
-                        {milestone.upvotes} upvotes, {milestone.downvotes}{" "}
-                        downvotes ({milestone.upvotes - milestone.downvotes}{" "}
-                        net)
-                      </Alert>
-                    ) : null}
-                    <Button
-                      variant="contained"
-                      color="success"
-                      onClick={handleCompleteMilestone}
-                      fullWidth
-                      disabled={
-                        isCompletingMilestone ||
-                        milestone.upvotes <= milestone.downvotes ||
-                        milestone.upvotes - milestone.downvotes < 5
-                      }
+                {milestone.status === MilestoneStatus.ForVerification &&
+                  isCitizen &&
+                  address && (
+                    <Box sx={{ mt: 1.5 }}>
+                      <VotingSection
+                        projectId={project.id}
+                        milestoneIndex={index}
+                        milestone={milestone}
+                        userAddress={address}
+                        isVerifyingMilestone={isVerifyingMilestone}
+                        onVerify={handleVerify}
+                      />
+                    </Box>
+                  )}
+
+                {isContractor &&
+                  index === project.currentMilestone &&
+                  milestone.status === MilestoneStatus.Pending && (
+                    <Box
+                      sx={{
+                        mt: 1.5,
+                        display: "flex",
+                        justifyContent: "flex-end",
+                      }}
                     >
-                      {isCompletingMilestone
-                        ? "Processing..."
-                        : "Complete Milestone"}
-                    </Button>
-                  </Box>
-                )}
+                      <Button
+                        variant="contained"
+                        size="small"
+                        startIcon={<UploadIcon />}
+                        onClick={() => handleOpenSubmitDialog(index)}
+                        disabled={isSubmittingMilestone}
+                      >
+                        {isSubmittingMilestone ? "Submitting..." : "Submit"}
+                      </Button>
+                    </Box>
+                  )}
+
+                {isOfficial &&
+                  milestone.status === MilestoneStatus.ForVerification && (
+                    <Box sx={{ mt: 1.5 }}>
+                      {milestone.upvotes <= milestone.downvotes ||
+                      milestone.upvotes - milestone.downvotes < 5 ? (
+                        <Alert severity="warning" sx={{ mb: 1.5, py: 0.5 }}>
+                          Consensus not reached. Need 5+ net upvotes. Current:{" "}
+                          {milestone.upvotes - milestone.downvotes} net
+                        </Alert>
+                      ) : null}
+                      <Button
+                        variant="contained"
+                        color="success"
+                        size="small"
+                        onClick={handleCompleteMilestone}
+                        fullWidth
+                        disabled={
+                          isCompletingMilestone ||
+                          milestone.upvotes <= milestone.downvotes ||
+                          milestone.upvotes - milestone.downvotes < 5
+                        }
+                      >
+                        {isCompletingMilestone ? "Processing..." : "Complete"}
+                      </Button>
+                    </Box>
+                  )}
+              </Box>
             </CardContent>
           </Card>
         ))}
