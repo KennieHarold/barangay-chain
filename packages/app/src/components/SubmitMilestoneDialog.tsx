@@ -10,7 +10,12 @@ import {
   TextField,
   Button,
   Box,
+  FormControlLabel,
+  Checkbox,
+  Typography,
+  Paper,
 } from "@mui/material";
+
 import { UploadSectionTypes, UploadSection } from "./UploadSection";
 
 interface SubmitMilestoneDialogProps {
@@ -19,6 +24,8 @@ interface SubmitMilestoneDialogProps {
   description: string;
   siteProgressFiles: File[];
   receiptFiles: File[];
+  siteProgressUrls: string[];
+  receiptUrls: string[];
   completionDate: string;
   loading: boolean;
   uploadingSiteProgress: boolean;
@@ -39,6 +46,8 @@ export function SubmitMilestoneDialog({
   description,
   siteProgressFiles,
   receiptFiles,
+  siteProgressUrls,
+  receiptUrls,
   completionDate,
   loading,
   uploadingSiteProgress,
@@ -59,6 +68,27 @@ export function SubmitMilestoneDialog({
   const [receiptPreviews, setReceiptPreviews] = useState<
     Array<{ file: File; url: string } | null>
   >([null, null, null]);
+
+  const checklistItems = [
+    {
+      label: "Completion date provided",
+      checked: !!completionDate,
+    },
+    {
+      label: "Accomplishment description written",
+      checked: !!description && description.trim().length > 0,
+    },
+    {
+      label: "Site progress images uploaded to IPFS",
+      checked: siteProgressUrls.length > 0,
+    },
+    {
+      label: "Receipt images uploaded to IPFS",
+      checked: receiptUrls.length > 0,
+    },
+  ];
+
+  const allChecksPassed = checklistItems.every((item) => item.checked);
 
   const handleFileSelect = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -193,6 +223,7 @@ export function SubmitMilestoneDialog({
             helpText="Select images to upload showing the progress of the work on site"
             uploading={uploadingSiteProgress}
             hasFiles={siteProgressPreviews.some((p) => p !== null)}
+            isUploaded={siteProgressUrls.length > 0}
             onFileChange={(e, index) =>
               handleFileSelect(e, index, UploadSectionTypes.SiteProgress)
             }
@@ -209,6 +240,7 @@ export function SubmitMilestoneDialog({
             helpText="Select receipt images to upload for expenses related to this milestone"
             uploading={uploadingReceipts}
             hasFiles={receiptPreviews.some((p) => p !== null)}
+            isUploaded={receiptUrls.length > 0}
             onFileChange={(e, index) =>
               handleFileSelect(e, index, UploadSectionTypes.Receipts)
             }
@@ -217,6 +249,61 @@ export function SubmitMilestoneDialog({
               handleRemoveFile(index, UploadSectionTypes.Receipts)
             }
           />
+          <Paper
+            variant="outlined"
+            sx={{
+              p: 2,
+              backgroundColor: allChecksPassed
+                ? "success.50"
+                : "background.paper",
+              borderColor: allChecksPassed ? "success.main" : "divider",
+            }}
+          >
+            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+              Submission Checklist
+            </Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              display="block"
+              sx={{ mb: 1.5 }}
+            >
+              Complete all items below before submitting the milestone:
+            </Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+              {checklistItems.map((item, index) => (
+                <FormControlLabel
+                  key={index}
+                  control={
+                    <Checkbox
+                      checked={item.checked}
+                      disabled
+                      size="small"
+                      sx={{
+                        color: item.checked
+                          ? "success.main"
+                          : "action.disabled",
+                        "&.Mui-checked": {
+                          color: "success.main",
+                        },
+                      }}
+                    />
+                  }
+                  label={
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: item.checked ? "text.primary" : "text.secondary",
+                        textDecoration: item.checked ? "none" : "none",
+                      }}
+                    >
+                      {item.label}
+                    </Typography>
+                  }
+                />
+              ))}
+            </Box>
+          </Paper>
         </Box>
       </DialogContent>
       <DialogActions>

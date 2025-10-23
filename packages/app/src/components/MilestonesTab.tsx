@@ -386,6 +386,8 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
         completionDate={completionDate}
         siteProgressFiles={siteProgressFiles}
         receiptFiles={receiptFiles}
+        siteProgressUrls={siteProgressUrls}
+        receiptUrls={receiptUrls}
         uploadingSiteProgress={uploadingSiteProgress}
         uploadingReceipts={uploadingReceipts}
         onClose={handleCloseSubmitDialog}

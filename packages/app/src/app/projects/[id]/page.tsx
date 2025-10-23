@@ -36,7 +36,11 @@ export default function ProjectDetailPage() {
     );
   }
 
-  return mounted ? (
+  if (!mounted) {
+    return <></>;
+  }
+
+  return (
     <div>
       <Navbar />
 
@@ -60,7 +64,5 @@ export default function ProjectDetailPage() {
         </Box>
       </Container>
     </div>
-  ) : (
-    <></>
   );
 }

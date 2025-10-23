@@ -51,7 +51,6 @@ export function VotingSection({
           startIcon={<ThumbUpIcon />}
           onClick={() => onVerify(true)}
           disabled={hasVoted || isVerifyingMilestone}
-          loading={isVerifyingMilestone}
           sx={{
             "&.Mui-disabled": {
               borderColor: "success.main",
@@ -60,7 +59,7 @@ export function VotingSection({
             },
           }}
         >
-          Upvote ({milestone.upvotes})
+          {isVerifyingMilestone ? "Voting..." : `Upvote (${milestone.upvotes})`}
         </Button>
         <Button
           variant="outlined"
@@ -68,7 +67,6 @@ export function VotingSection({
           startIcon={<ThumbDownIcon />}
           onClick={() => onVerify(false)}
           disabled={hasVoted || isVerifyingMilestone}
-          loading={isVerifyingMilestone}
           sx={{
             "&.Mui-disabled": {
               borderColor: "error.main",
@@ -77,7 +75,9 @@ export function VotingSection({
             },
           }}
         >
-          Downvote ({milestone.downvotes})
+          {isVerifyingMilestone
+            ? "Voting..."
+            : `Downvote (${milestone.downvotes})`}
         </Button>
       </Box>
     </Box>

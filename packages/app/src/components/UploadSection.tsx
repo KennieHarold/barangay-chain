@@ -1,4 +1,5 @@
 import { Box, Typography, Button, Alert } from "@mui/material";
+
 import { UploadSlot } from "./UploadSlot";
 
 export enum UploadSectionTypes {
@@ -14,6 +15,7 @@ interface UploadSectionProps {
   helpText: string;
   uploading: boolean;
   hasFiles: boolean;
+  isUploaded?: boolean;
   onFileChange: (
     event: React.ChangeEvent<HTMLInputElement>,
     index: number
@@ -26,10 +28,10 @@ export function UploadSection({
   title,
   inputIdPrefix,
   previews,
-  type,
   helpText,
   uploading,
   hasFiles,
+  isUploaded = false,
   onFileChange,
   onUpload,
   onRemove,
@@ -69,11 +71,16 @@ export function UploadSection({
       <Button
         variant="contained"
         onClick={onUpload}
-        disabled={!hasFiles || uploading}
+        disabled={!hasFiles || uploading || isUploaded}
         fullWidth
         sx={{ mt: 2 }}
+        color={isUploaded ? "success" : "primary"}
       >
-        {uploading ? "Uploading..." : "Upload"}
+        {uploading
+          ? "Uploading..."
+          : isUploaded
+          ? "Uploaded to IPFS ✓"
+          : "Upload to IPFS"}
       </Button>
       <Alert severity="info" sx={{ mt: 2 }}>
         {helpText}
