@@ -10,32 +10,24 @@ import {
   Badge as BadgeIcon,
 } from "@mui/icons-material";
 
-import { Category } from "@/models";
+import { useBalanceOf } from "@/hooks/useCitizenNFT";
+import { useFetchExpensesPerCategory } from "@/hooks/useTreasury";
 import { StatCard } from "./StatCard";
 import { ExpensesPieChart } from "./ExpensesPieChart";
 import { CitizenIdModal } from "./CitizenIdModal";
 
-import { useBalanceOf } from "@/hooks/useCitizenNFT";
-
 export function Dashboard() {
   const { address } = useAccount();
   const { data: nftBalance } = useBalanceOf(address as Address);
+  const { data: expensesByCategory, total: totalExpenses } =
+    useFetchExpensesPerCategory();
 
   const [openModal, setOpenModal] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   const completedProjects = 12;
-  const totalExpenses = 45750.5;
   const activeProjects = 8;
   const isCitizen = BigInt(nftBalance || 0) > BigInt(0);
-
-  const expensesByCategory = [
-    { category: Category.Infrastructure, amount: 15000.0 },
-    { category: Category.Health, amount: 8500.25 },
-    { category: Category.Education, amount: 12300.5 },
-    { category: Category.Environment, amount: 5200.75 },
-    { category: Category.Livelihood, amount: 4750.0 },
-  ];
 
   const handleOpenModal = () => {
     setOpenModal(true);
@@ -72,7 +64,7 @@ export function Dashboard() {
             <Grid size={{ xs: 12, md: 6 }}>
               <StatCard
                 title="Total Expenses (PYUSD)"
-                value={totalExpenses.toFixed(2)}
+                value={parseFloat(String(totalExpenses || 0)).toFixed(2)}
                 icon={<MoneyIcon sx={{ fontSize: 40, color: "white" }} />}
                 color="#3B82F6"
                 valueVariant="h5"

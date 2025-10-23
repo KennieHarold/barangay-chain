@@ -1449,6 +1449,373 @@ export const CITIZEN_NFT_ABI = [
   },
 ] as const;
 
+export const TREASURY_ABI = [
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "authority",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "protocol_",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "treasuryToken",
+        type: "address",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "authority",
+        type: "address",
+      },
+    ],
+    name: "AccessManagedInvalidAuthority",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+      {
+        internalType: "uint32",
+        name: "delay",
+        type: "uint32",
+      },
+    ],
+    name: "AccessManagedRequiredDelay",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+    ],
+    name: "AccessManagedUnauthorized",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "SafeERC20FailedOperation",
+    type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "authority",
+        type: "address",
+      },
+    ],
+    name: "AuthorityUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "initiator",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "EmergencyWithdraw",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "enum ITreasury.Category",
+        name: "category",
+        type: "uint8",
+      },
+    ],
+    name: "FundsReleased",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "newProtocolAddress",
+        type: "address",
+      },
+    ],
+    name: "SetProtocol",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "operator",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "TreasuryDeposit",
+    type: "event",
+  },
+  {
+    inputs: [],
+    name: "BASIS_POINT",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "TREASURY_TOKEN",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "enum ITreasury.Category",
+        name: "",
+        type: "uint8",
+      },
+    ],
+    name: "allocations",
+    outputs: [
+      {
+        internalType: "uint16",
+        name: "",
+        type: "uint16",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "authority",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "emergencyWithdraw",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "enum ITreasury.Category",
+        name: "",
+        type: "uint8",
+      },
+    ],
+    name: "expenses",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "isConsumingScheduledOp",
+    outputs: [
+      {
+        internalType: "bytes4",
+        name: "",
+        type: "bytes4",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "onTransferReceived",
+    outputs: [
+      {
+        internalType: "bytes4",
+        name: "",
+        type: "bytes4",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "protocol",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        internalType: "enum ITreasury.Category",
+        name: "category",
+        type: "uint8",
+      },
+    ],
+    name: "releaseFunds",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "newAuthority",
+        type: "address",
+      },
+    ],
+    name: "setAuthority",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "protocol_",
+        type: "address",
+      },
+    ],
+    name: "setProtocol",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+] as const;
+
 export const projectCreated = BARANGAY_CHAIN_ABI.find(
   (item) => item.type === "event" && item.name === "ProjectCreated"
 )!;
