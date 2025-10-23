@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { Address, formatUnits } from "viem";
-import { useReadContracts } from "wagmi";
+import { Address, erc20Abi, formatUnits } from "viem";
+import { useReadContract, useReadContracts } from "wagmi";
 
 import { Category } from "@/models";
 import { TREASURY_ABI } from "@/lib/abi";
@@ -55,4 +55,13 @@ function getCategoryByIndex(index: number): Category {
     isNaN(Number(key))
   );
   return Category[categoryKeys[index] as keyof typeof Category];
+}
+
+export function useFetchTreasuryBudget() {
+  return useReadContract({
+    abi: erc20Abi,
+    address: process.env.NEXT_PUBLIC_PYUSD_ADDRESS as Address,
+    functionName: "balanceOf",
+    args: [baseContractArgs.address],
+  });
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { Container, Grid, Paper, Button } from "@mui/material";
-import { Address } from "viem";
+import { Address, formatUnits } from "viem";
 import {
   AssignmentTurnedIn as ProjectIcon,
   AttachMoney as MoneyIcon,
@@ -11,21 +11,26 @@ import {
 } from "@mui/icons-material";
 
 import { useBalanceOf } from "@/hooks/useCitizenNFT";
-import { useFetchExpensesPerCategory } from "@/hooks/useTreasury";
+import {
+  useFetchExpensesPerCategory,
+  useFetchTreasuryBudget,
+} from "@/hooks/useTreasury";
 import { StatCard } from "./StatCard";
 import { ExpensesPieChart } from "./ExpensesPieChart";
 import { CitizenIdModal } from "./CitizenIdModal";
+import { useProjectCounter } from "@/hooks/useBarangayChain";
 
 export function Dashboard() {
   const { address } = useAccount();
   const { data: nftBalance } = useBalanceOf(address as Address);
+  const { data: treasuryBudget } = useFetchTreasuryBudget();
+  const { data: totalProjects } = useProjectCounter();
   const { data: expensesByCategory, total: totalExpenses } =
     useFetchExpensesPerCategory();
 
   const [openModal, setOpenModal] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const completedProjects = 12;
   const activeProjects = 8;
   const isCitizen = BigInt(nftBalance || 0) > BigInt(0);
 
@@ -55,25 +60,26 @@ export function Dashboard() {
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 6 }}>
               <StatCard
-                title="Total Projects Done"
-                value={completedProjects}
-                icon={<ProjectIcon sx={{ fontSize: 40, color: "white" }} />}
+                title="Treasury Remaining Budget (PYUSD)"
+                value={parseFloat(
+                  String(formatUnits(treasuryBudget || BigInt(0), 6))
+                ).toFixed(2)}
+                icon={<MoneyIcon sx={{ fontSize: 40, color: "white" }} />}
                 color="#10B981"
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <StatCard
-                title="Total Expenses (PYUSD)"
+                title="Total Released Funds (PYUSD)"
                 value={parseFloat(String(totalExpenses || 0)).toFixed(2)}
                 icon={<MoneyIcon sx={{ fontSize: 40, color: "white" }} />}
                 color="#3B82F6"
-                valueVariant="h5"
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <StatCard
-                title="Active Projects"
-                value={activeProjects}
+                title="Total Projects"
+                value={Number(totalProjects || 0)}
                 icon={<ProjectIcon sx={{ fontSize: 40, color: "white" }} />}
                 color="#F59E0B"
               />
