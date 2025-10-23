@@ -20,6 +20,7 @@ import {
   CloudUpload as CloudUploadIcon,
 } from "@mui/icons-material";
 import { useAccount } from "wagmi";
+import { isAddress } from "viem";
 
 import { Navbar } from "@/components/Navbar";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -27,6 +28,15 @@ import { UserRole } from "@/models";
 import { Unauthorized } from "@/components/Unauthorized";
 
 const schema = yup.object({
+  walletAddress: yup
+    .string()
+    .required("Wallet address is required")
+    .test("is-valid-address", "Invalid Ethereum address", (value) => {
+      if (!value) {
+        return false;
+      }
+      return isAddress(value);
+    }),
   firstName: yup.string().required("First name is required"),
   middleName: yup.string().optional(),
   lastName: yup.string().required("Last name is required"),
@@ -55,6 +65,7 @@ export default function IssueCitizenIDPage() {
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
+      walletAddress: "",
       firstName: "",
       middleName: "",
       lastName: "",
@@ -90,6 +101,7 @@ export default function IssueCitizenIDPage() {
 
   const onSubmit = (data: FormData) => {
     console.log({
+      walletAddress: data.walletAddress,
       firstName: data.firstName,
       middleName: data.middleName,
       lastName: data.lastName,
@@ -162,6 +174,20 @@ export default function IssueCitizenIDPage() {
                   </Typography>
                 )}
               </Box>
+              <Controller
+                name="walletAddress"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Wallet Address"
+                    fullWidth
+                    placeholder="Enter wallet address (0x...)"
+                    error={!!errors.walletAddress}
+                    helperText={errors.walletAddress?.message}
+                  />
+                )}
+              />
               <Controller
                 name="firstName"
                 control={control}

@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 
 import { MilestoneStatus, Project } from "@/models";
+import { useFetchAmountFundsReleased } from "@/hooks/useBarangayChain";
 
 interface BudgetTabProps {
   project: Project;
@@ -82,14 +83,10 @@ export function BudgetTab({ project }: BudgetTabProps) {
     [advancePaymentSchedule, milestoneBudgetSchedule]
   );
 
-  const totalReleased = useMemo(
-    () =>
-      budgetSchedule
-        .filter((item) => item.isReleased)
-        .reduce((sum, item) => sum + item.releaseAmount, 0),
-    [budgetSchedule]
+  const { data: totalReleasedRaw } = useFetchAmountFundsReleased(project.id);
+  const totalReleased = parseFloat(
+    formatUnits(totalReleasedRaw || BigInt(0), 6)
   );
-
   const releaseProgress = (totalReleased / totalBudget) * 100;
 
   return (

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAccount } from "wagmi";
 import { Container, Grid, Paper, Button } from "@mui/material";
+import { Address } from "viem";
 import {
   AssignmentTurnedIn as ProjectIcon,
   AttachMoney as MoneyIcon,
@@ -13,13 +15,19 @@ import { StatCard } from "./StatCard";
 import { ExpensesPieChart } from "./ExpensesPieChart";
 import { CitizenIdModal } from "./CitizenIdModal";
 
+import { useBalanceOf } from "@/hooks/useCitizenNFT";
+
 export function Dashboard() {
+  const { address } = useAccount();
+  const { data: nftBalance } = useBalanceOf(address as Address);
+
   const [openModal, setOpenModal] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   const completedProjects = 12;
   const totalExpenses = 45750.5;
   const activeProjects = 8;
+  const isCitizen = BigInt(nftBalance || 0) > BigInt(0);
 
   const expensesByCategory = [
     { category: Category.Infrastructure, amount: 15000.0 },
@@ -97,6 +105,7 @@ export function Dashboard() {
                   variant="contained"
                   fullWidth
                   onClick={handleOpenModal}
+                  disabled={!isCitizen}
                   sx={{
                     backgroundColor: "#8B5CF6",
                     "&:hover": {

@@ -233,3 +233,14 @@ export function useFetchProjectEventLogs(projectId: number) {
     enabled: !!publicClient && projectId !== undefined,
   });
 }
+
+export function useFetchAmountFundsReleased(projectId: number) {
+  return useReadContract({
+    ...baseContractArgs,
+    functionName: "amountFundsReleased",
+    args: [BigInt(projectId)],
+    query: {
+      enabled: projectId !== undefined,
+    },
+  });
+}
