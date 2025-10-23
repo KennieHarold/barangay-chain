@@ -172,18 +172,19 @@ export function useHasUserVoted(
   });
 }
 
-function fetchEventLogsByType(
+async function fetchEventLogsByType(
   publicClient: PublicClient,
   event: AbiEvent,
   projectId: number
 ) {
+  const latestBlock = await publicClient.getBlock();
   return publicClient.getLogs({
     address: baseContractArgs.address,
     event,
     args: {
       projectId: BigInt(projectId),
     },
-    fromBlock: BigInt(String(process.env.NEXT_PUBLIC_LAST_PROCESSED_BLOCK)),
+    fromBlock: latestBlock.number - BigInt(10000),
     toBlock: "latest",
   });
 }
@@ -242,5 +243,22 @@ export function useFetchAmountFundsReleased(projectId: number) {
     query: {
       enabled: projectId !== undefined,
     },
+  });
+}
+
+export function useBlockTimestamp() {
+  const publicClient = usePublicClient();
+
+  return useQuery({
+    queryKey: ["blockTimestamp"],
+    queryFn: async () => {
+      if (!publicClient) {
+        throw new Error("Public client not available");
+      }
+      const block = await publicClient.getBlock();
+      return block.timestamp;
+    },
+    enabled: !!publicClient,
+    refetchInterval: 12000,
   });
 }

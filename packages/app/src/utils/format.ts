@@ -19,3 +19,7 @@ export const getCidFromUri = (uri: string) => {
   const match = uri.match(/\/ipfs\/([^/?]+)/);
   return match ? match[1] : uri;
 };
+
+export const addSpaceToCamelCase = (str: string) => {
+  return str.replace(/([a-z])([A-Z])/g, "$1 $2");
+};

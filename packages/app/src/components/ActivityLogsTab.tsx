@@ -16,7 +16,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 
-import { shortenAddress } from "@/utils/format";
+import { addSpaceToCamelCase, shortenAddress } from "@/utils/format";
 import { useFetchProjectEventLogs } from "@/hooks/useBarangayChain";
 import { useTransactionPopup } from "@blockscout/app-sdk";
 
@@ -96,7 +96,7 @@ export function ActivityLogsTab({ projectId }: ActivityLogsTabProps) {
                     <TableRow key={log.transactionHash} hover>
                       <TableCell>
                         <Chip
-                          label={log.eventName}
+                          label={addSpaceToCamelCase(log.eventName)}
                           color={getEventColor(log.eventName)}
                           size="small"
                           sx={{ fontWeight: "bold" }}

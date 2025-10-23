@@ -13,9 +13,7 @@ export const DEFAULT_CHAIN_ID = 11155111;
 const config = createConfig({
   chains: [sepolia],
   transports: {
-    [DEFAULT_CHAIN_ID]: http(
-      `https://sepolia.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_API_KEY}`
-    ),
+    [DEFAULT_CHAIN_ID]: http(),
   },
 });
 

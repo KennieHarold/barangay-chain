@@ -22,6 +22,7 @@ import { SubmitMilestoneDialog } from "@/components/SubmitMilestoneDialog";
 import { MilestoneMetadata } from "@/components/MilestoneMetadata";
 import { VotingSection } from "@/components/VotingSection";
 import {
+  useBlockTimestamp,
   useCompleteMilestone,
   useHasRole,
   useSubmitMilestone,
@@ -30,6 +31,7 @@ import {
 import { useBalanceOf } from "@/hooks/useCitizenNFT";
 import { useUploadImageMutation, useUploadJsonMutation } from "@/hooks/useIPFS";
 import { DEFAULT_CHAIN_ID } from "@/lib/providers";
+import { formatDate } from "@/utils/format";
 
 interface MilestonesTabProps {
   project: Project;
@@ -39,13 +41,15 @@ interface MilestonesTabProps {
 export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
   const { address } = useAccount();
   const { openTxToast } = useNotification();
+  const { data: blockTimestamp } = useBlockTimestamp();
   const { data: isOfficial } = useHasRole(
     UserRole.Official,
     address as Address
   );
   const { data: nftBalance } = useBalanceOf(address as Address);
   const { mutateAsync: uploadImageMutate } = useUploadImageMutation();
-  const { mutateAsync: uploadJsonMutate } = useUploadJsonMutation();
+  const { mutateAsync: uploadJsonMutate, isPending: isUploadingJson } =
+    useUploadJsonMutation();
 
   const {
     mutate: submitMutate,
@@ -81,6 +85,10 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
 
   const isContractor = address === project.vendor;
   const isCitizen = BigInt(nftBalance || 0) > BigInt(0);
+
+  const currentTimestamp = blockTimestamp || BigInt(0);
+  const hasStartDatePassed = currentTimestamp >= project.startDate;
+  const hasEndDatePassed = currentTimestamp > project.endDate;
 
   const handleOpenSubmitDialog = (milestoneIndex: number) => {
     setSelectedMilestoneIndex(milestoneIndex);
@@ -372,22 +380,41 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
                 {isContractor &&
                   index === project.currentMilestone &&
                   milestone.status === MilestoneStatus.Pending && (
-                    <Box
-                      sx={{
-                        mt: 1.5,
-                        display: "flex",
-                        justifyContent: "flex-end",
-                      }}
-                    >
-                      <Button
-                        variant="contained"
-                        size="small"
-                        startIcon={<UploadIcon />}
-                        onClick={() => handleOpenSubmitDialog(index)}
-                        disabled={isSubmittingMilestone}
+                    <Box sx={{ mt: 1.5 }}>
+                      {!hasStartDatePassed && (
+                        <Alert severity="warning" sx={{ mb: 1.5, py: 0.5 }}>
+                          Project has not started yet. You can submit this
+                          milestone starting{" "}
+                          {`${formatDate(project.startDate)} UTC+0`}.
+                        </Alert>
+                      )}
+                      {hasEndDatePassed && (
+                        <Alert severity="error" sx={{ mb: 1.5, py: 0.5 }}>
+                          Project deadline has passed (
+                          {`${formatDate(project.endDate)} UTC+0`}). You can no
+                          longer submit milestones.
+                        </Alert>
+                      )}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "flex-end",
+                        }}
                       >
-                        {isSubmittingMilestone ? "Submitting..." : "Submit"}
-                      </Button>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          startIcon={<UploadIcon />}
+                          onClick={() => handleOpenSubmitDialog(index)}
+                          disabled={
+                            isSubmittingMilestone ||
+                            !hasStartDatePassed ||
+                            hasEndDatePassed
+                          }
+                        >
+                          {isSubmittingMilestone ? "Submitting..." : "Submit"}
+                        </Button>
+                      </Box>
                     </Box>
                   )}
 
@@ -441,7 +468,7 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
         onUploadSiteProgress={handleUploadSiteProgress}
         onUploadReceipts={handleUploadReceipts}
         onSubmit={handleSubmitMilestone}
-        loading={isSubmittingMilestone}
+        loading={isSubmittingMilestone || isUploadingJson}
       />
     </Box>
   );
