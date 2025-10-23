@@ -1,9 +1,9 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+import BarangayAccessManagerModule from "./AccessManager.js";
 
 const CitizenNFTModule = buildModule("CitizenNFTModule", (m) => {
-  const initialAdmin = m.getParameter("initialAdmin", m.getAccount(0));
-
-  const citizenNFT = m.contract("CitizenNFT", [initialAdmin]);
+  const { accessManager } = m.useModule(BarangayAccessManagerModule);
+  const citizenNFT = m.contract("CitizenNFT", [accessManager]);
 
   return { citizenNFT };
 });
