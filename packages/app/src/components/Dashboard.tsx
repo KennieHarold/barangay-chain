@@ -63,8 +63,8 @@ export function Dashboard() {
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <StatCard
-                title="Total Expenses"
-                value={`${totalExpenses.toFixed(2)} PYUSD`}
+                title="Total Expenses (PYUSD)"
+                value={totalExpenses.toFixed(2)}
                 icon={<MoneyIcon sx={{ fontSize: 40, color: "white" }} />}
                 color="#3B82F6"
                 valueVariant="h5"
