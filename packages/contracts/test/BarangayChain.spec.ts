@@ -13,13 +13,21 @@ import {
 import type { BarangayChain } from "../types/ethers-contracts/BarangayChain.js";
 import type { Treasury } from "../types/ethers-contracts/Treasury.js";
 import type { CitizenNFT } from "../types/ethers-contracts/CitizenNFT.js";
-import type { MockERC20 } from "../types/ethers-contracts/index.js";
+import type { BarangayAccessManager } from "../types/ethers-contracts/BarangayAccessManager.js";
+import type {
+  BarangayChain__factory,
+  CitizenNFT__factory,
+  MockERC20,
+  Treasury__factory,
+} from "../types/ethers-contracts/index.js";
 
-export const BASE_URI = "http://scarlet-inc-buzzard-641.mypinata.cloud/ipfs/";
+export const TEST_METADATA_URI =
+  "http://scarlet-inc-buzzard-641.mypinata.cloud/ipfs/test-ipfs-hash";
 
 describe("BarangayChain", function () {
   let ethers: any;
   let networkHelpers: any;
+  let accessManager: BarangayAccessManager;
   let barangayChain: BarangayChain;
   let treasury: Treasury;
   let citizenNFT: CitizenNFT;
@@ -35,10 +43,6 @@ describe("BarangayChain", function () {
   let billy: Signer;
   let john: Signer;
 
-  const ADMIN_ROLE = ZeroHash;
-  const OFFICIAL_ROLE = keccak256(toUtf8Bytes("OFFICIAL_ROLE"));
-  const VENDOR_ROLE = keccak256(toUtf8Bytes("VENDOR_ROLE"));
-
   before(async function () {
     const provider = await network.connect();
     ethers = provider.ethers;
@@ -49,9 +53,16 @@ describe("BarangayChain", function () {
     [admin, official, vendor, alice, bob, dave, james, billy, john] =
       await ethers.getSigners();
 
+    // Deploy AccessManager
+    const AccessManagerFactory = await ethers.getContractFactory(
+      "BarangayAccessManager"
+    );
+    accessManager = await AccessManagerFactory.deploy(admin, official);
+
     // Deploy CitizenNFT
-    const CitizenNFTFactory = await ethers.getContractFactory("CitizenNFT");
-    citizenNFT = await CitizenNFTFactory.deploy(admin);
+    const CitizenNFTFactory: CitizenNFT__factory =
+      await ethers.getContractFactory("CitizenNFT");
+    citizenNFT = await CitizenNFTFactory.deploy(accessManager);
 
     // Deploy Treasury Token
     const TreasuryTokenFactory = await ethers.getContractFactory("MockERC20");
@@ -62,14 +73,41 @@ describe("BarangayChain", function () {
     );
 
     // Deploy Treasury
-    const TreasuryFactory = await ethers.getContractFactory("Treasury");
-    treasury = await TreasuryFactory.deploy(admin, ZeroAddress, treasuryToken);
+    const TreasuryFactory: Treasury__factory = await ethers.getContractFactory(
+      "Treasury"
+    );
+    treasury = await TreasuryFactory.deploy(
+      accessManager,
+      ZeroAddress,
+      treasuryToken
+    );
 
     // Deploy BarangayChain
-    const BarangayChainFactory = await ethers.getContractFactory(
-      "BarangayChain"
+    const BarangayChainFactory: BarangayChain__factory =
+      await ethers.getContractFactory("BarangayChain");
+    barangayChain = await BarangayChainFactory.deploy(
+      accessManager,
+      treasury,
+      citizenNFT
     );
-    barangayChain = await BarangayChainFactory.deploy(treasury, citizenNFT);
+
+    // Set access control rules for official
+    const createProjectSelector =
+      BarangayChainFactory.interface.getFunction("createProject")?.selector ||
+      "";
+    const completeMilestoneSelector =
+      BarangayChainFactory.interface.getFunction("completeMilestone")
+        ?.selector || "";
+    const safeMintSelector =
+      CitizenNFTFactory.interface.getFunction("safeMint")?.selector || "";
+
+    await accessManager.setTargetFunctionRole(
+      barangayChain,
+      [createProjectSelector, completeMilestoneSelector, safeMintSelector],
+      1n
+    );
+
+    // Set Protocol
     await treasury.setProtocol(barangayChain);
 
     // Fund treasury
@@ -77,10 +115,6 @@ describe("BarangayChain", function () {
       treasury,
       parseEther(String(1_000_000_000)) // 1 billion
     );
-
-    // Grant roles
-    await barangayChain.grantRole(OFFICIAL_ROLE, official);
-    await barangayChain.grantRole(VENDOR_ROLE, vendor);
 
     // Mint CitizenNFT
     await citizenNFT.safeMint(alice, "1");
@@ -101,12 +135,12 @@ describe("BarangayChain", function () {
 
     const tx = await barangayChain.connect(official).createProject(
       official,
-      vendor,
+      1n,
       parseEther(String(1_000_000)), // 1 million
       0n,
       BigInt(startDate),
       BigInt(endDate),
-      `${BASE_URI}test-ipfs-hash`,
+      TEST_METADATA_URI,
       [3000n, 6000n, 1000n]
     );
 
@@ -116,14 +150,11 @@ describe("BarangayChain", function () {
   async function submitMilestone(projectId: bigint) {
     await barangayChain
       .connect(vendor)
-      .submitMilestone(projectId, `${BASE_URI}test-ipfs-hash`);
+      .submitMilestone(projectId, TEST_METADATA_URI);
   }
 
   describe("Deployment", function () {
     it("should deploy with correct constants", async function () {
-      expect(await barangayChain.DEFAULT_ADMIN_ROLE()).to.be.eq(ADMIN_ROLE);
-      expect(await barangayChain.OFFICIAL_ROLE()).to.be.eq(OFFICIAL_ROLE);
-      expect(await barangayChain.VENDOR_ROLE()).to.be.eq(VENDOR_ROLE);
       expect(await barangayChain.QUORUM_VOTES()).to.be.eq(5);
       expect(await barangayChain.BASIS_POINT()).to.be.eq(10000n);
       expect(await barangayChain.MIN_RELEASE_BPS_LENGTH()).to.be.eq(3);
@@ -139,7 +170,7 @@ describe("BarangayChain", function () {
       expect(await barangayChain.projectCounter()).to.be.eq(0);
       expect(await barangayChain.projects(1)).to.be.eqls([
         "0x0000000000000000000000000000000000000000",
-        "0x0000000000000000000000000000000000000000",
+        0n,
         0n,
         0n,
         0n,
@@ -163,48 +194,51 @@ describe("BarangayChain", function () {
     beforeEach(async function () {
       startDate = await networkHelpers.time.latest();
       endDate = startDate + 1825 * 24 * 60 * 60; // 5 years from now
+      await barangayChain.addVendor(vendor, TEST_METADATA_URI);
     });
 
     it("should revert when non-official creates project", async function () {
       await expect(
         barangayChain.connect(alice).createProject(
           official,
-          vendor,
+          1n,
           parseEther(String(1_000_000)), // 1 million
           0n,
           BigInt(startDate),
           BigInt(endDate),
-          `${BASE_URI}test-ipfs-hash`,
+          TEST_METADATA_URI,
           [3000n, 6000n, 1000n]
         )
-      ).to.be.rejectedWith("BarangayChain: Not an official");
+      ).to.be.rejectedWith(
+        `AccessManagedUnauthorized("${await alice.getAddress()}")`
+      );
     });
 
     it("should successfully create project", async function () {
       await expect(
         barangayChain.connect(official).createProject(
           official,
-          vendor,
+          1n,
           parseEther(String(1_000_000)), // 1 million
           0n,
           BigInt(startDate),
           BigInt(endDate),
-          `${BASE_URI}test-ipfs-hash`,
+          TEST_METADATA_URI,
           [3000n, 6000n, 1000n]
         )
       )
         .to.emit(barangayChain, "ProjectCreated")
         .withArgs(
-          1,
+          1n,
           official,
-          vendor,
+          1n,
           parseEther(String(300_000)),
           parseEther(String(1_000_000)),
           0n,
           BigInt(startDate),
           BigInt(endDate),
           3,
-          `${BASE_URI}test-ipfs-hash`
+          TEST_METADATA_URI
         )
         .to.emit(treasury, "FundsReleased")
         .withArgs(vendor, parseEther(String(300_000)), 0n)
@@ -214,15 +248,15 @@ describe("BarangayChain", function () {
       expect(await barangayChain.projectCounter()).to.be.eq(1);
       expect(await barangayChain.projects(1)).to.be.eqls([
         await official.getAddress(),
-        await vendor.getAddress(),
         BigInt(startDate),
         BigInt(endDate),
         3n,
+        1n,
         parseEther(String(300_000)),
         parseEther(String(1_000_000)), // 1 million
         0n,
         0n,
-        `${BASE_URI}test-ipfs-hash`,
+        TEST_METADATA_URI,
       ]);
 
       const milestones = {
@@ -245,12 +279,12 @@ describe("BarangayChain", function () {
       await expect(
         barangayChain.connect(official).createProject(
           official,
-          vendor,
+          1n,
           parseEther(String(1_000_000)), // 1 million
           0n,
           BigInt(startDate),
           BigInt(endDate),
-          `${BASE_URI}test-ipfs-hash`,
+          TEST_METADATA_URI,
           [3000n, 7000n]
         )
       ).to.be.rejectedWith(
@@ -261,14 +295,13 @@ describe("BarangayChain", function () {
 
   describe("Milestone Submission", async function () {
     beforeEach(async function () {
+      await barangayChain.addVendor(vendor, TEST_METADATA_URI);
       await createProjectDefault();
     });
 
     it("should revert when non-vendor submits milestone", async function () {
       await expect(
-        barangayChain
-          .connect(alice)
-          .submitMilestone(1n, `${BASE_URI}test-ipfs-hash`)
+        barangayChain.connect(alice).submitMilestone(1n, TEST_METADATA_URI)
       ).to.be.rejectedWith(
         "BarangayChain::submitMilestone: Only assigned vendor"
       );
@@ -276,35 +309,30 @@ describe("BarangayChain", function () {
 
     it("should submit milestone successfully", async function () {
       await expect(
-        barangayChain
-          .connect(vendor)
-          .submitMilestone(1n, `${BASE_URI}test-ipfs-hash`)
+        barangayChain.connect(vendor).submitMilestone(1n, TEST_METADATA_URI)
       )
         .to.emit(barangayChain, "MilestoneSubmitted")
-        .withArgs(1n, 0n, vendor, `${BASE_URI}test-ipfs-hash`);
+        .withArgs(1n, 0n, vendor, TEST_METADATA_URI);
     });
 
     it("should revert when submitting another milestone", async function () {
       await submitMilestone(1n);
       await expect(
-        barangayChain
-          .connect(vendor)
-          .submitMilestone(1n, `${BASE_URI}test-ipfs-hash`)
+        barangayChain.connect(vendor).submitMilestone(1n, TEST_METADATA_URI)
       ).to.be.rejectedWith("BarangayChain::submitMilestone: Invalid status");
     });
 
     it("should revert when project is already due", async function () {
       await timeTravel(1825 * 24 * 60 * 60 + 1);
       await expect(
-        barangayChain
-          .connect(vendor)
-          .submitMilestone(1n, `${BASE_URI}test-ipfs-hash`)
+        barangayChain.connect(vendor).submitMilestone(1n, TEST_METADATA_URI)
       ).to.be.rejectedWith("BarangayChain::submitMilestone: Already due");
     });
   });
 
   describe("Milestone Verification", async function () {
     beforeEach(async function () {
+      await barangayChain.addVendor(vendor, TEST_METADATA_URI);
       await createProjectDefault();
       await submitMilestone(1n);
     });
@@ -323,15 +351,7 @@ describe("BarangayChain", function () {
       expect(await barangayChain.getUserMilestoneVerification(1n, 0n, alice)).to
         .be.true;
 
-      const milestone = [
-        1n,
-        0n,
-        `${BASE_URI}test-ipfs-hash`,
-        6000n,
-        0n,
-        false,
-        1n,
-      ];
+      const milestone = [1n, 0n, TEST_METADATA_URI, 6000n, 0n, false, 1n];
       expect(await barangayChain.getProjectMilestone(1n, 0n)).to.be.eqls(
         milestone
       );
@@ -354,6 +374,7 @@ describe("BarangayChain", function () {
 
   describe("Complete Milestone", async function () {
     beforeEach(async function () {
+      await barangayChain.addVendor(vendor, TEST_METADATA_URI);
       await createProjectDefault();
       await submitMilestone(1n);
       await barangayChain.connect(alice).verifyMilestone(1n, true);
@@ -375,7 +396,9 @@ describe("BarangayChain", function () {
     it("should revert when non-official completes a milestone", async function () {
       await expect(
         barangayChain.connect(vendor).completeMilestone(1n)
-      ).to.be.rejectedWith("BarangayChain: Not an official");
+      ).to.be.rejectedWith(
+        `AccessManagedUnauthorized("${await vendor.getAddress()}")`
+      );
     });
 
     it("should successfully complete milestone", async function () {
@@ -400,6 +423,7 @@ describe("BarangayChain", function () {
     let completeMilestone2Tx: ContractTransactionResponse;
 
     beforeEach(async function () {
+      await barangayChain.addVendor(vendor, TEST_METADATA_URI);
       await createProjectDefault();
 
       // Milestone 0
