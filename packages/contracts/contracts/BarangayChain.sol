@@ -1,17 +1,16 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {AccessManaged} from "@openzeppelin/contracts/access/manager/AccessManaged.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 import "./interfaces/IBarangayChain.sol";
 import "./interfaces/ITreasury.sol";
 
-contract BarangayChain is IBarangayChain, AccessControl {
+contract BarangayChain is IBarangayChain, AccessManaged {
     // Constants
-    bytes32 public constant OFFICIAL_ROLE = keccak256("OFFICIAL_ROLE");
-    bytes32 public constant VENDOR_ROLE = keccak256("VENDOR_ROLE");
     uint256 public constant BASIS_POINT = 10000;
     uint8 public constant QUORUM_VOTES = 5;
     uint8 public constant MIN_RELEASE_BPS_LENGTH = 3;
@@ -23,26 +22,22 @@ contract BarangayChain is IBarangayChain, AccessControl {
 
     // State variables
     uint256 public projectCounter;
+    uint256 public vendorCounter;
 
     // Mappings
     mapping(uint256 projectId => Project) public projects;
     mapping(uint256 projectId => uint256 amount) public amountFundsReleased;
     mapping(bytes32 key => bool consensus) private userVerifications;
+    mapping(uint256 vendorId => Vendor) public vendors;
 
-    constructor(ITreasury treasury_, IERC721 citizenNFT) {
+    constructor(
+        address authority,
+        ITreasury treasury_,
+        IERC721 citizenNFT
+    ) AccessManaged(authority) {
         TREASURY = treasury_;
         PAYMENT_TOKEN = IERC20(treasury_.TREASURY_TOKEN());
         CITIZEN_NFT = citizenNFT;
-
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-    }
-
-    modifier onlyOfficial() {
-        require(
-            hasRole(OFFICIAL_ROLE, msg.sender),
-            "BarangayChain: Not an official"
-        );
-        _;
     }
 
     modifier onlyCitizen() {
@@ -56,9 +51,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
     modifier validateProjectExists(uint256 projectId) {
         Project memory project = projects[projectId];
         require(
-            project.proposer != address(0) &&
-                project.vendor != address(0) &&
-                project.budget > 0,
+            project.proposer != address(0) && project.budget > 0,
             "BarangayChain: Project doesn't exists"
         );
         _;
@@ -66,14 +59,14 @@ contract BarangayChain is IBarangayChain, AccessControl {
 
     function createProject(
         address proposer,
-        address vendor,
+        uint256 vendorId,
         uint256 budget,
         ITreasury.Category category,
         uint64 startDate,
         uint64 endDate,
         string memory uri,
         uint16[] memory releaseBpsTemplate
-    ) external onlyOfficial {
+    ) external restricted {
         require(
             releaseBpsTemplate.length >= MIN_RELEASE_BPS_LENGTH,
             "BarangayChain::createProject: Too low release bps length"
@@ -81,10 +74,6 @@ contract BarangayChain is IBarangayChain, AccessControl {
         require(
             proposer != address(0),
             "BarangayChain::createProject: Invalid proposer address"
-        );
-        require(
-            vendor != address(0),
-            "BarangayChain::createProject: Invalid vendor address"
         );
 
         uint256 sum = 0;
@@ -97,13 +86,19 @@ contract BarangayChain is IBarangayChain, AccessControl {
             "BarangayChain::createProject: Release bps length not equal to 100"
         );
 
+        Vendor memory vendor = vendors[vendorId];
+        require(
+            vendor.isWhitelisted,
+            "BarangayChain::createProject: Vendor not whitelisted"
+        );
+
         projectCounter++;
 
         Project storage project = projects[projectCounter];
         uint256 advancePayment = (budget * releaseBpsTemplate[0]) / BASIS_POINT;
 
         project.proposer = proposer;
-        project.vendor = vendor;
+        project.vendorId = vendorId;
         project.startDate = startDate;
         project.endDate = endDate;
         project.milestoneCount = uint8(releaseBpsTemplate.length);
@@ -137,13 +132,13 @@ contract BarangayChain is IBarangayChain, AccessControl {
             );
         }
 
-        TREASURY.releaseFunds(vendor, advancePayment, category);
+        TREASURY.releaseFunds(vendor.walletAddress, advancePayment, category);
         amountFundsReleased[projectCounter] = advancePayment;
 
         emit ProjectCreated(
             projectCounter,
             proposer,
-            vendor,
+            vendorId,
             advancePayment,
             budget,
             category,
@@ -159,9 +154,14 @@ contract BarangayChain is IBarangayChain, AccessControl {
         string memory uri
     ) external validateProjectExists(projectId) {
         Project storage project = projects[projectId];
+        Vendor memory vendor = vendors[project.vendorId];
 
         require(
-            project.vendor == msg.sender,
+            vendor.isWhitelisted,
+            "BarangayChain::submitMilestone: Vendor not whitelisted"
+        );
+        require(
+            vendor.walletAddress == msg.sender,
             "BarangayChain::submitMilestone: Only assigned vendor"
         );
         require(
@@ -228,7 +228,7 @@ contract BarangayChain is IBarangayChain, AccessControl {
 
     function completeMilestone(
         uint256 projectId
-    ) external validateProjectExists(projectId) onlyOfficial {
+    ) external validateProjectExists(projectId) restricted {
         Project storage project = projects[projectId];
 
         require(
@@ -259,13 +259,24 @@ contract BarangayChain is IBarangayChain, AccessControl {
         bool isProjectCompleted = currentMilestone ==
             project.milestones.length - 1;
 
-        if (!isProjectCompleted) {
+        Vendor storage vendor = vendors[project.vendorId];
+
+        if (isProjectCompleted) {
+            vendor.totalProjectsDone += 1;
+        } else {
             project.currentMilestone = currentMilestone + 1;
         }
+
         if (payment > 0) {
-            amountFundsReleased[projectId] = payment;
+            amountFundsReleased[projectId] += payment;
+            vendor.totalDisbursement += payment;
             milestone.isReleased = true;
-            TREASURY.releaseFunds(project.vendor, payment, project.category);
+
+            TREASURY.releaseFunds(
+                vendor.walletAddress,
+                payment,
+                project.category
+            );
         }
 
         emit MilestoneCompleted(
@@ -274,6 +285,37 @@ contract BarangayChain is IBarangayChain, AccessControl {
             payment,
             isProjectCompleted
         );
+    }
+
+    function addVendor(address walletAddress, string memory uri) external {
+        require(
+            walletAddress != address(0),
+            "BarangayChain::addVendor: Invalid wallet address"
+        );
+
+        vendorCounter++;
+        vendors[vendorCounter] = Vendor({
+            walletAddress: walletAddress,
+            metadataURI: uri,
+            isWhitelisted: true,
+            totalProjectsDone: 0,
+            totalDisbursement: 0
+        });
+
+        emit VendorAdded(vendorCounter, walletAddress);
+    }
+
+    function setVendorWhitelist(uint256 vendorId, bool status) external {
+        Vendor storage vendor = vendors[vendorId];
+
+        require(
+            vendor.walletAddress != address(0),
+            "BarangayChain::setVendorWhitelist: Vendor not added"
+        );
+
+        vendor.isWhitelisted = status;
+
+        emit SetVendorWhitelist(vendorId, status);
     }
 
     function getProjectMilestone(

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
 interface ITreasury {
@@ -13,6 +13,8 @@ interface ITreasury {
     event FundsReleased(address indexed to, uint256 amount, Category category);
 
     event SetProtocol(address indexed newProtocolAddress);
+
+    event EmergencyWithdraw(address indexed initiator, uint256 amount);
 
     // Enums
     enum Category {
@@ -33,4 +35,6 @@ interface ITreasury {
         uint256 amount,
         Category category
     ) external;
+
+    function emergencyWithdraw() external;
 }

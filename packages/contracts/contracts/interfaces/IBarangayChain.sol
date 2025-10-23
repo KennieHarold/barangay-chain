@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
 import "./ITreasury.sol";
@@ -8,7 +8,7 @@ interface IBarangayChain {
     event ProjectCreated(
         uint256 indexed projectId,
         address indexed proposer,
-        address indexed vendor,
+        uint256 indexed vendorId,
         uint256 advancePayment,
         uint256 budget,
         ITreasury.Category category,
@@ -48,12 +48,16 @@ interface IBarangayChain {
         Done
     }
 
+    event VendorAdded(uint256 indexed vendorId, address indexed walletAddress);
+
+    event SetVendorWhitelist(uint256 indexed vendorId, bool status);
+
     struct Project {
         address proposer;
-        address vendor;
         uint64 startDate;
         uint64 endDate;
         uint8 milestoneCount;
+        uint256 vendorId;
         uint256 advancePayment;
         uint256 budget;
         ITreasury.Category category;
@@ -76,9 +80,17 @@ interface IBarangayChain {
         uint16 releaseBps;
     }
 
+    struct Vendor {
+        address walletAddress;
+        string metadataURI;
+        bool isWhitelisted;
+        uint256 totalProjectsDone;
+        uint256 totalDisbursement;
+    }
+
     function createProject(
         address proposer,
-        address vendor,
+        uint256 vendorId,
         uint256 budget,
         ITreasury.Category category,
         uint64 startDate,
@@ -92,6 +104,10 @@ interface IBarangayChain {
     function verifyMilestone(uint256 projectId, bool consensus) external;
 
     function completeMilestone(uint256 projectId) external;
+
+    function addVendor(address walletAddress, string memory uri) external;
+
+    function setVendorWhitelist(uint256 vendorId, bool status) external;
 
     function getProjectMilestone(
         uint256 projectId,

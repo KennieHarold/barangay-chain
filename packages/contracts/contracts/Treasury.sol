@@ -1,14 +1,14 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {AccessManaged} from "@openzeppelin/contracts/access/manager/AccessManaged.sol";
 import {IERC1363Receiver} from "@openzeppelin/contracts/interfaces/IERC1363Receiver.sol";
 
 import "./interfaces/ITreasury.sol";
 
-contract Treasury is ITreasury, IERC1363Receiver, Ownable {
+contract Treasury is ITreasury, IERC1363Receiver, AccessManaged {
     using SafeERC20 for IERC20;
 
     // Immutables
@@ -24,10 +24,10 @@ contract Treasury is ITreasury, IERC1363Receiver, Ownable {
     mapping(Category => uint16) public allocations;
 
     constructor(
-        address fundManager,
+        address authority,
         address protocol_,
         address treasuryToken
-    ) Ownable(fundManager) {
+    ) AccessManaged(authority) {
         protocol = protocol_;
         TREASURY_TOKEN = treasuryToken;
 
@@ -74,7 +74,7 @@ contract Treasury is ITreasury, IERC1363Receiver, Ownable {
         emit FundsReleased(to, amount, category);
     }
 
-    function setProtocol(address protocol_) external {
+    function setProtocol(address protocol_) external restricted {
         require(
             protocol_ != address(0),
             "Treasury::setProtocol: Invalid address"
@@ -92,5 +92,12 @@ contract Treasury is ITreasury, IERC1363Receiver, Ownable {
     ) external override returns (bytes4) {
         emit TreasuryDeposit(operator, from, value, data);
         return IERC1363Receiver.onTransferReceived.selector;
+    }
+
+    function emergencyWithdraw() external restricted {
+        uint256 funds = IERC20(TREASURY_TOKEN).balanceOf(address(this));
+        IERC20(TREASURY_TOKEN).safeTransfer(msg.sender, funds);
+
+        emit EmergencyWithdraw(msg.sender, funds);
     }
 }
