@@ -28,16 +28,16 @@ export default function ProjectDetailPage() {
     setMounted(true);
   }, []);
 
+  if (!mounted) {
+    return <></>;
+  }
+
   if (project.proposer === zeroAddress) {
     return (
       <Container sx={{ py: 4 }}>
         <Box>Project not found</Box>
       </Container>
     );
-  }
-
-  if (!mounted) {
-    return <></>;
   }
 
   return (

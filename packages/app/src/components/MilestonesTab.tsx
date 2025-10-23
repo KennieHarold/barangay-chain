@@ -44,11 +44,8 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
     address as Address
   );
   const { data: nftBalance } = useBalanceOf(address as Address);
-
-  const { mutateAsync: uploadImageMutate, isPending: isUploadingImage } =
-    useUploadImageMutation();
-  const { mutateAsync: uploadJsonMutate, isPending: isUploadingJson } =
-    useUploadJsonMutation();
+  const { mutateAsync: uploadImageMutate } = useUploadImageMutation();
+  const { mutateAsync: uploadJsonMutate } = useUploadJsonMutation();
 
   const {
     mutate: submitMutate,
@@ -84,9 +81,6 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
 
   const isContractor = address === project.vendor;
   const isCitizen = BigInt(nftBalance || 0) > BigInt(0);
-
-  const isSubmitMilestoneLoading =
-    isUploadingImage || isUploadingJson || isSubmittingMilestone;
 
   const handleOpenSubmitDialog = (milestoneIndex: number) => {
     setSelectedMilestoneIndex(milestoneIndex);
@@ -336,9 +330,9 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
                       variant="contained"
                       startIcon={<UploadIcon />}
                       onClick={() => handleOpenSubmitDialog(index)}
-                      disabled={isSubmitMilestoneLoading}
+                      disabled={isSubmittingMilestone}
                     >
-                      {isSubmitMilestoneLoading
+                      {isSubmittingMilestone
                         ? "Submitting..."
                         : "Submit Milestone"}
                     </Button>
