@@ -2,6 +2,11 @@ export const BARANGAY_CHAIN_ABI = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "authority",
+        type: "address",
+      },
+      {
         internalType: "contract ITreasury",
         name: "treasury_",
         type: "address",
@@ -16,25 +21,55 @@ export const BARANGAY_CHAIN_ABI = [
     type: "constructor",
   },
   {
-    inputs: [],
-    name: "AccessControlBadConfirmation",
+    inputs: [
+      {
+        internalType: "address",
+        name: "authority",
+        type: "address",
+      },
+    ],
+    name: "AccessManagedInvalidAuthority",
     type: "error",
   },
   {
     inputs: [
       {
         internalType: "address",
-        name: "account",
+        name: "caller",
         type: "address",
       },
       {
-        internalType: "bytes32",
-        name: "neededRole",
-        type: "bytes32",
+        internalType: "uint32",
+        name: "delay",
+        type: "uint32",
       },
     ],
-    name: "AccessControlUnauthorizedAccount",
+    name: "AccessManagedRequiredDelay",
     type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+    ],
+    name: "AccessManagedUnauthorized",
+    type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "authority",
+        type: "address",
+      },
+    ],
+    name: "AuthorityUpdated",
+    type: "event",
   },
   {
     anonymous: false,
@@ -158,9 +193,9 @@ export const BARANGAY_CHAIN_ABI = [
       },
       {
         indexed: true,
-        internalType: "address",
-        name: "vendor",
-        type: "address",
+        internalType: "uint256",
+        name: "vendorId",
+        type: "uint256",
       },
       {
         indexed: false,
@@ -213,24 +248,18 @@ export const BARANGAY_CHAIN_ABI = [
     inputs: [
       {
         indexed: true,
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
+        internalType: "uint256",
+        name: "vendorId",
+        type: "uint256",
       },
       {
-        indexed: true,
-        internalType: "bytes32",
-        name: "previousAdminRole",
-        type: "bytes32",
-      },
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "newAdminRole",
-        type: "bytes32",
+        indexed: false,
+        internalType: "bool",
+        name: "status",
+        type: "bool",
       },
     ],
-    name: "RoleAdminChanged",
+    name: "SetVendorWhitelist",
     type: "event",
   },
   {
@@ -238,49 +267,18 @@ export const BARANGAY_CHAIN_ABI = [
     inputs: [
       {
         indexed: true,
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
+        internalType: "uint256",
+        name: "vendorId",
+        type: "uint256",
       },
       {
         indexed: true,
         internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "sender",
+        name: "walletAddress",
         type: "address",
       },
     ],
-    name: "RoleGranted",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "sender",
-        type: "address",
-      },
-    ],
-    name: "RoleRevoked",
+    name: "VendorAdded",
     type: "event",
   },
   {
@@ -311,38 +309,12 @@ export const BARANGAY_CHAIN_ABI = [
   },
   {
     inputs: [],
-    name: "DEFAULT_ADMIN_ROLE",
-    outputs: [
-      {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "MIN_RELEASE_BPS_LENGTH",
     outputs: [
       {
         internalType: "uint8",
         name: "",
         type: "uint8",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "OFFICIAL_ROLE",
-    outputs: [
-      {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
       },
     ],
     stateMutability: "view",
@@ -388,16 +360,21 @@ export const BARANGAY_CHAIN_ABI = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "VENDOR_ROLE",
-    outputs: [
+    inputs: [
       {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
+        internalType: "address",
+        name: "walletAddress",
+        type: "address",
+      },
+      {
+        internalType: "string",
+        name: "uri",
+        type: "string",
       },
     ],
-    stateMutability: "view",
+    name: "addVendor",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -414,6 +391,19 @@ export const BARANGAY_CHAIN_ABI = [
         internalType: "uint256",
         name: "amount",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "authority",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
       },
     ],
     stateMutability: "view",
@@ -440,9 +430,9 @@ export const BARANGAY_CHAIN_ABI = [
         type: "address",
       },
       {
-        internalType: "address",
-        name: "vendor",
-        type: "address",
+        internalType: "uint256",
+        name: "vendorId",
+        type: "uint256",
       },
       {
         internalType: "uint256",
@@ -544,25 +534,6 @@ export const BARANGAY_CHAIN_ABI = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-    ],
-    name: "getRoleAdmin",
-    outputs: [
-      {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "uint256",
         name: "projectId",
         type: "uint256",
@@ -590,42 +561,13 @@ export const BARANGAY_CHAIN_ABI = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-    ],
-    name: "grantRole",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-    ],
-    name: "hasRole",
+    inputs: [],
+    name: "isConsumingScheduledOp",
     outputs: [
       {
-        internalType: "bool",
+        internalType: "bytes4",
         name: "",
-        type: "bool",
+        type: "bytes4",
       },
     ],
     stateMutability: "view",
@@ -660,11 +602,6 @@ export const BARANGAY_CHAIN_ABI = [
         type: "address",
       },
       {
-        internalType: "address",
-        name: "vendor",
-        type: "address",
-      },
-      {
         internalType: "uint64",
         name: "startDate",
         type: "uint64",
@@ -678,6 +615,11 @@ export const BARANGAY_CHAIN_ABI = [
         internalType: "uint8",
         name: "milestoneCount",
         type: "uint8",
+      },
+      {
+        internalType: "uint256",
+        name: "vendorId",
+        type: "uint256",
       },
       {
         internalType: "uint256",
@@ -711,17 +653,12 @@ export const BARANGAY_CHAIN_ABI = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
-      },
-      {
         internalType: "address",
-        name: "callerConfirmation",
+        name: "newAuthority",
         type: "address",
       },
     ],
-    name: "renounceRole",
+    name: "setAuthority",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -729,17 +666,17 @@ export const BARANGAY_CHAIN_ABI = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "role",
-        type: "bytes32",
+        internalType: "uint256",
+        name: "vendorId",
+        type: "uint256",
       },
       {
-        internalType: "address",
-        name: "account",
-        type: "address",
+        internalType: "bool",
+        name: "status",
+        type: "bool",
       },
     ],
-    name: "revokeRole",
+    name: "setVendorWhitelist",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -763,19 +700,52 @@ export const BARANGAY_CHAIN_ABI = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "bytes4",
-        name: "interfaceId",
-        type: "bytes4",
-      },
-    ],
-    name: "supportsInterface",
+    inputs: [],
+    name: "vendorCounter",
     outputs: [
       {
-        internalType: "bool",
+        internalType: "uint256",
         name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "vendorId",
+        type: "uint256",
+      },
+    ],
+    name: "vendors",
+    outputs: [
+      {
+        internalType: "address",
+        name: "walletAddress",
+        type: "address",
+      },
+      {
+        internalType: "string",
+        name: "metadataURI",
+        type: "string",
+      },
+      {
+        internalType: "bool",
+        name: "isWhitelisted",
         type: "bool",
+      },
+      {
+        internalType: "uint256",
+        name: "totalProjectsDone",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "totalDisbursement",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -806,12 +776,50 @@ export const CITIZEN_NFT_ABI = [
     inputs: [
       {
         internalType: "address",
-        name: "initialOwner",
+        name: "authority",
         type: "address",
       },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "authority",
+        type: "address",
+      },
+    ],
+    name: "AccessManagedInvalidAuthority",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+      {
+        internalType: "uint32",
+        name: "delay",
+        type: "uint32",
+      },
+    ],
+    name: "AccessManagedRequiredDelay",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+    ],
+    name: "AccessManagedUnauthorized",
+    type: "error",
   },
   {
     inputs: [
@@ -927,28 +935,6 @@ export const CITIZEN_NFT_ABI = [
     type: "error",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-    ],
-    name: "OwnableInvalidOwner",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-    ],
-    name: "OwnableUnauthorizedAccount",
-    type: "error",
-  },
-  {
     anonymous: false,
     inputs: [
       {
@@ -1002,64 +988,45 @@ export const CITIZEN_NFT_ABI = [
     anonymous: false,
     inputs: [
       {
-        indexed: true,
+        indexed: false,
         internalType: "address",
-        name: "to",
+        name: "authority",
         type: "address",
       },
+    ],
+    name: "AuthorityUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
       {
-        indexed: true,
+        indexed: false,
         internalType: "uint256",
-        name: "tokenId",
+        name: "_fromTokenId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "_toTokenId",
         type: "uint256",
       },
     ],
-    name: "CitizenMinted",
+    name: "BatchMetadataUpdate",
     type: "event",
   },
   {
     anonymous: false,
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
-        name: "by",
-        type: "address",
+        indexed: false,
+        internalType: "uint256",
+        name: "_tokenId",
+        type: "uint256",
       },
     ],
-    name: "ContractPaused",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "by",
-        type: "address",
-      },
-    ],
-    name: "ContractUnpaused",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "previousOwner",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
-    ],
-    name: "OwnershipTransferred",
+    name: "MetadataUpdate",
     type: "event",
   },
   {
@@ -1132,6 +1099,19 @@ export const CITIZEN_NFT_ABI = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "authority",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -1195,12 +1175,12 @@ export const CITIZEN_NFT_ABI = [
   },
   {
     inputs: [],
-    name: "name",
+    name: "isConsumingScheduledOp",
     outputs: [
       {
-        internalType: "string",
+        internalType: "bytes4",
         name: "",
-        type: "string",
+        type: "bytes4",
       },
     ],
     stateMutability: "view",
@@ -1208,12 +1188,12 @@ export const CITIZEN_NFT_ABI = [
   },
   {
     inputs: [],
-    name: "owner",
+    name: "name",
     outputs: [
       {
-        internalType: "address",
+        internalType: "string",
         name: "",
-        type: "address",
+        type: "string",
       },
     ],
     stateMutability: "view",
@@ -1259,18 +1239,16 @@ export const CITIZEN_NFT_ABI = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "renounceOwnership",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "address",
         name: "to",
         type: "address",
+      },
+      {
+        internalType: "string",
+        name: "uri",
+        type: "string",
       },
     ],
     name: "safeMint",
@@ -1356,6 +1334,19 @@ export const CITIZEN_NFT_ABI = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "newAuthority",
+        type: "address",
+      },
+    ],
+    name: "setAuthority",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "bytes4",
         name: "interfaceId",
         type: "bytes4",
@@ -1423,19 +1414,6 @@ export const CITIZEN_NFT_ABI = [
       },
     ],
     name: "transferFrom",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
-    ],
-    name: "transferOwnership",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -1636,6 +1614,19 @@ export const TREASURY_ABI = [
   },
   {
     inputs: [],
+    name: "MAX_ALLOWABLE_BUDGET_UNSCALED",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "TREASURY_TOKEN",
     outputs: [
       {
@@ -1721,35 +1712,25 @@ export const TREASURY_ABI = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "operator",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "from",
-        type: "address",
+        internalType: "enum ITreasury.Category",
+        name: "category",
+        type: "uint8",
       },
       {
         internalType: "uint256",
-        name: "value",
+        name: "amount",
         type: "uint256",
       },
-      {
-        internalType: "bytes",
-        name: "data",
-        type: "bytes",
-      },
     ],
-    name: "onTransferReceived",
+    name: "isWithinAllowableAllocation",
     outputs: [
       {
-        internalType: "bytes4",
+        internalType: "bool",
         name: "",
-        type: "bytes4",
+        type: "bool",
       },
     ],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
     type: "function",
   },
   {
