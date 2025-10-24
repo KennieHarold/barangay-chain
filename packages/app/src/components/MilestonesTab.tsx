@@ -27,7 +27,7 @@ import { VotingSection } from "@/components/VotingSection";
 import {
   useBlockTimestamp,
   useCompleteMilestone,
-  useHasRole,
+  useFetchVendorInfo,
   useSubmitMilestone,
   useVerifyMilestone,
 } from "@/hooks/useBarangayChain";
@@ -35,6 +35,7 @@ import { useBalanceOf } from "@/hooks/useCitizenNFT";
 import { useUploadImageMutation, useUploadJsonMutation } from "@/hooks/useIPFS";
 import { DEFAULT_CHAIN_ID } from "@/lib/providers";
 import { formatDate } from "@/utils/format";
+import { useHasRole } from "@/hooks/useUserRole";
 
 interface MilestonesTabProps {
   project: Project;
@@ -49,6 +50,7 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
     UserRole.Official,
     address as Address
   );
+  const { data: contractor } = useFetchVendorInfo(project.vendorId);
   const { data: nftBalance } = useBalanceOf(address as Address);
   const { mutateAsync: uploadImageMutate } = useUploadImageMutation();
   const { mutateAsync: uploadJsonMutate, isPending: isUploadingJson } =
@@ -89,7 +91,7 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
   const [siteProgressUrls, setSiteProgressUrls] = useState<string[]>([]);
   const [receiptUrls, setReceiptUrls] = useState<string[]>([]);
 
-  const isContractor = address === project.vendor;
+  const isContractor = address === contractor?.[0];
   const isCitizen = BigInt(nftBalance || 0) > BigInt(0);
 
   const currentTimestamp = blockTimestamp || BigInt(0);

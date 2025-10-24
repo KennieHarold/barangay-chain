@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { isAddress } from "viem";
+import { Address, isAddress } from "viem";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -17,11 +17,16 @@ import {
 } from "@mui/material";
 import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
 import { useAccount } from "wagmi";
+import { enqueueSnackbar } from "notistack";
+import { useNotification } from "@blockscout/app-sdk";
 
 import { Navbar } from "@/components/Navbar";
 import { useUserRole } from "@/hooks/useUserRole";
 import { UserRole } from "@/models";
 import { Unauthorized } from "@/components/Unauthorized";
+import { useUploadJsonMutation } from "@/hooks/useIPFS";
+import { useAddVendor } from "@/hooks/useBarangayChain";
+import { DEFAULT_CHAIN_ID } from "@/lib/providers";
 
 const schema = yup.object({
   contractorName: yup.string().required("Contractor name is required"),
@@ -43,6 +48,10 @@ export default function ManageContractorsPage() {
   const router = useRouter();
   const { address } = useAccount();
   const { role, isLoading: isCheckingRole } = useUserRole(address);
+  const { mutateAsync: uploadAsync, isPending: isUploading } =
+    useUploadJsonMutation();
+  const { mutate, isPending, isConfirming, isSuccess, hash } = useAddVendor();
+  const { openTxToast } = useNotification();
 
   const [mounted, setMounted] = useState(false);
 
@@ -60,19 +69,45 @@ export default function ManageContractorsPage() {
     },
   });
 
+  const isAddContractorLoading = isUploading || isPending || isConfirming;
+
+  const onSubmit = async (data: FormData) => {
+    try {
+      const uri = await uploadAsync({
+        name: data.contractorName,
+        location: data.contractorAddress,
+      });
+
+      if (!uri) {
+        throw new Error("Upload failed: Can't find URL");
+      }
+
+      mutate(data.walletAddress as Address, uri);
+    } catch (error) {
+      console.error("Error creating project:", error);
+      enqueueSnackbar({
+        message: `Error creating project: ${error}`,
+        variant: "error",
+        anchorOrigin: { vertical: "top", horizontal: "right" },
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (hash) {
+      openTxToast(DEFAULT_CHAIN_ID.toString(), hash);
+    }
+  }, [hash]);
+
+  useEffect(() => {
+    if (isSuccess) {
+      reset();
+    }
+  }, [isSuccess]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const onSubmit = (data: FormData) => {
-    console.log({
-      name: data.contractorName,
-      address: data.contractorAddress,
-      walletAddress: data.walletAddress,
-    });
-
-    reset();
-  };
 
   if (isCheckingRole || !mounted) {
     return <></>;
@@ -149,8 +184,13 @@ export default function ManageContractorsPage() {
                 <Button variant="outlined" onClick={() => router.back()}>
                   Cancel
                 </Button>
-                <Button type="submit" variant="contained" size="large">
-                  Add Contractor
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  disabled={isAddContractorLoading}
+                >
+                  {isAddContractorLoading ? "Registering..." : "Add Contractor"}
                 </Button>
               </Box>
             </Box>

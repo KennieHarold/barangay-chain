@@ -1,30 +1,59 @@
 import { Address } from "viem";
+import { useReadContract } from "wagmi";
 
 import { UserRole } from "@/models";
+import { roles } from "@/constants/access";
 import { useBalanceOf } from "./useCitizenNFT";
-import { useHasRole } from "./useBarangayChain";
+import { ACCESS_MANAGER_ABI } from "@/lib/abi";
+import { useFetchVendorsList } from "./useBarangayChain";
+
+const baseContractArgs = {
+  address: process.env.NEXT_PUBLIC_ACCESS_MANAGER_ADDRESS as Address,
+  abi: ACCESS_MANAGER_ABI,
+};
+
+export function useHasRole(role: keyof typeof roles, account: Address) {
+  return useReadContract({
+    ...baseContractArgs,
+    functionName: "hasRole",
+    args: [roles[role], account],
+    query: {
+      enabled: role !== undefined && account !== undefined,
+    },
+  });
+}
 
 export function useUserRole(address: Address | undefined): {
   role: UserRole;
   isLoading: boolean;
 } {
   const {
-    data: isAdmin,
+    data: adminRoleData,
     isLoading: isAdminLoading,
     isFetched: isAdminFetched,
   } = useHasRole(UserRole.Admin, address as Address);
 
+  const isAdmin = adminRoleData?.[0] || false;
+
   const {
-    data: isOfficial,
+    data: officialRoleData,
     isLoading: isOfficialLoading,
     isFetched: isOfficialFetched,
   } = useHasRole(UserRole.Official, address as Address);
 
+  const isOfficial = officialRoleData?.[0] || false;
+
   const {
-    data: isContractor,
+    data: contractors,
     isLoading: isContractorLoading,
     isFetched: isContractorFetched,
-  } = useHasRole(UserRole.Contractor, address as Address);
+  } = useFetchVendorsList();
+
+  const isContractor = contractors.find(
+    (contactor) =>
+      contactor.isWhitelisted &&
+      contactor.walletAddress.toLowerCase() === address?.toLowerCase()
+  );
 
   const {
     data: citizenBalance,

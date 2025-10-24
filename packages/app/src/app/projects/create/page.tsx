@@ -164,7 +164,7 @@ export default function CreateProjectPage() {
 
       const projectData: CreateProjectData = {
         proposer: data.proposer as Address,
-        vendor: data.vendor as Address,
+        vendorId: 1,
         budget: budgetInUnits,
         category: data.category,
         startDate: startTimestamp,

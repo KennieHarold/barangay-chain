@@ -24,7 +24,7 @@ export interface Project {
   title: string;
   description: string;
   proposer: Address;
-  vendor: Address;
+  vendorId: bigint;
   startDate: bigint;
   endDate: bigint;
   milestoneCount: number;
@@ -44,7 +44,7 @@ export enum MilestoneStatus {
 
 export interface CreateProjectData {
   proposer: Address;
-  vendor: Address;
+  vendorId: number;
   budget: bigint;
   category: Category;
   startDate: bigint;
@@ -74,7 +74,7 @@ export interface EventLog {
 
 export interface ProjectOnChain {
   proposer: Address;
-  vendor: Address;
+  vendorId: bigint;
   startDate: bigint;
   endDate: bigint;
   milestoneCount: number;
@@ -88,8 +88,17 @@ export interface ProjectOnChain {
 export interface Contractor {
   id: number;
   name: string;
-  address: string;
+  location: string;
+  isWhitelisted: boolean;
   walletAddress: Address;
-  totalProjects: number;
-  totalDisbursement: string;
+  totalProjectsDone: bigint;
+  totalDisbursement: bigint;
+}
+
+export interface ContractorOnchain {
+  walletAddress: Address;
+  metadataURI: string;
+  isWhitelisted: boolean;
+  totalProjectsDone: bigint;
+  totalDisbursement: bigint;
 }

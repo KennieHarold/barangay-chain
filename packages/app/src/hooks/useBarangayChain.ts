@@ -3,9 +3,10 @@ import {
   useWaitForTransactionReceipt,
   useReadContract,
   usePublicClient,
+  useReadContracts,
 } from "wagmi";
 import { AbiEvent, Address, PublicClient } from "viem";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   BARANGAY_CHAIN_ABI,
@@ -14,8 +15,10 @@ import {
   milestoneVerified,
   milestoneCompleted,
 } from "@/lib/abi";
-import { CreateProjectData } from "@/models";
-import { roles } from "@/constants/access";
+import { Contractor, CreateProjectData } from "@/models";
+import { useMemo } from "react";
+import { pinata } from "@/utils/config";
+import { getCidFromUri } from "@/utils/format";
 
 const baseContractArgs = {
   address: process.env.NEXT_PUBLIC_BARANGAY_CHAIN_ADDRESS as Address,
@@ -31,7 +34,7 @@ export function useCreateProject() {
   const mutate = (project: CreateProjectData) => {
     const {
       proposer,
-      vendor,
+      vendorId,
       budget,
       category,
       startDate,
@@ -45,7 +48,7 @@ export function useCreateProject() {
       functionName: "createProject",
       args: [
         proposer,
-        vendor,
+        BigInt(vendorId),
         budget,
         category,
         startDate,
@@ -131,17 +134,6 @@ export function useProjectMilestoneInfo(
     args: [BigInt(projectId), milestoneIdx],
     query: {
       enabled: projectId !== undefined && milestoneIdx !== undefined,
-    },
-  });
-}
-
-export function useHasRole(role: keyof typeof roles, account: Address) {
-  return useReadContract({
-    ...baseContractArgs,
-    functionName: "hasRole",
-    args: [roles[role], account],
-    query: {
-      enabled: role !== undefined && account !== undefined,
     },
   });
 }
@@ -261,4 +253,137 @@ export function useBlockTimestamp() {
     enabled: !!publicClient,
     refetchInterval: 12000,
   });
+}
+
+export function useVendorCounter() {
+  return useReadContract({
+    ...baseContractArgs,
+    functionName: "vendorCounter",
+    args: [],
+  });
+}
+
+export function useFetchVendorInfo(vendorId: bigint) {
+  return useReadContract({
+    ...baseContractArgs,
+    functionName: "vendors",
+    args: [BigInt(vendorId)],
+  });
+}
+
+export function useFetchVendorsList() {
+  const {
+    data: length,
+    isLoading: isVendorCounterLoading,
+    isFetched: isVendorCounterFetched,
+  } = useVendorCounter();
+  const queryClient = useQueryClient();
+
+  const contracts = useMemo(() => {
+    return Array.from({ length: Number(length || 0) }, (_, i) => ({
+      ...baseContractArgs,
+      functionName: "vendors" as const,
+      args: [BigInt(i + 1)] as const,
+    }));
+  }, [length]);
+
+  const {
+    data,
+    isLoading: isLoadingContracts,
+    isFetched: isContractsFetched,
+  } = useReadContracts({
+    contracts: contracts,
+  });
+  const ipfsQueries = useQueries({
+    queries:
+      data?.map(({ result }) => ({
+        queryKey: [
+          "contractorMetadata",
+          "walletAddress",
+          result?.[0],
+          "uri",
+          result?.[1],
+        ],
+        queryFn: () =>
+          pinata.gateways.public.get(getCidFromUri(result?.[1] || "")),
+      })) || [],
+  });
+
+  // No vendors yet
+  if (!length) {
+    return {
+      data: [],
+      total: 0,
+      isLoading: isVendorCounterLoading,
+      isFetched: isVendorCounterFetched,
+    };
+  }
+
+  const allVendorsLoaded =
+    data &&
+    data.length === Number(length || 0) &&
+    data.every((result) => result.status === "success") &&
+    ipfsQueries.every((result) => result.isSuccess);
+
+  const isLoading =
+    isVendorCounterLoading ||
+    isLoadingContracts ||
+    ipfsQueries.every((result) => result.isLoading);
+
+  const isFetched =
+    isVendorCounterFetched ||
+    isContractsFetched ||
+    ipfsQueries.every((result) => result.isFetched);
+
+  if (!allVendorsLoaded) {
+    return {
+      data: [],
+      total: 0,
+      isLoading,
+      isFetched,
+    };
+  }
+
+  const vendors: Contractor[] = data.map(({ result }, index) => {
+    const queryData = queryClient.getQueryData([
+      "contractorMetadata",
+      "walletAddress",
+      result?.[0],
+      "uri",
+      result?.[1],
+    ]) as { data: { name: string; location: string } };
+    return {
+      id: index + 1,
+      name: queryData?.data?.name || "",
+      location: queryData?.data?.location || "",
+      walletAddress: result[0] as Address,
+      isWhitelisted: result[2],
+      totalProjectsDone: result[3],
+      totalDisbursement: result[4],
+    };
+  });
+
+  return {
+    data: vendors,
+    total: length,
+    isLoading,
+    isFetched,
+  };
+}
+
+export function useAddVendor() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+    hash,
+  });
+
+  const mutate = (walletAddress: Address, uri: string) => {
+    writeContract({
+      ...baseContractArgs,
+      functionName: "addVendor",
+      args: [walletAddress, uri],
+    });
+  };
+
+  return { mutate, hash, isPending, isConfirming, isSuccess, error };
 }

@@ -22,7 +22,7 @@ export function useProjectData(id: number): {
 
   const {
     proposer = zeroAddress,
-    vendor = zeroAddress,
+    vendorId = BigInt(0),
     startDate = BigInt(0),
     endDate = BigInt(0),
     milestoneCount = 0,
@@ -77,7 +77,7 @@ export function useProjectData(id: number): {
         title: "",
         description: "",
         proposer: zeroAddress,
-        vendor: zeroAddress,
+        vendorId: BigInt(0),
         startDate: BigInt(0),
         endDate: BigInt(0),
         milestoneCount: 0,
@@ -111,7 +111,7 @@ export function useProjectData(id: number): {
       title: metadata.title,
       description: metadata.description,
       proposer,
-      vendor,
+      vendorId,
       startDate,
       endDate,
       milestoneCount,
@@ -133,7 +133,7 @@ function parseContractArgsToObject(args: any): { info: ProjectOnChain } | null {
   return {
     info: {
       proposer: args[0],
-      vendor: args[1],
+      vendorId: args[1],
       startDate: args[2],
       endDate: args[3],
       milestoneCount: Number(args[4]),
