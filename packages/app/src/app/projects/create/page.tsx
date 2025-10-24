@@ -46,6 +46,7 @@ export default function CreateProjectPage() {
     mutate,
     hash,
     isPending: isCreatingProject,
+    isConfirming: isConfirmingProjectCreation,
     isSuccess,
   } = useCreateProject();
   const { mutateAsync: uploadAsync, isPending: isUploading } =
@@ -535,9 +536,16 @@ export default function CreateProjectPage() {
                     type="submit"
                     variant="contained"
                     size="large"
-                    disabled={isCreatingProject || isUploading || !isValid}
+                    disabled={
+                      isCreatingProject ||
+                      isUploading ||
+                      !isValid ||
+                      isConfirmingProjectCreation
+                    }
                   >
-                    {isCreatingProject || isUploading
+                    {isCreatingProject ||
+                    isUploading ||
+                    isConfirmingProjectCreation
                       ? "Simmering..."
                       : "Create Project"}
                   </Button>

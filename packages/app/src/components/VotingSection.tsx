@@ -9,6 +9,7 @@ import {
 
 import { Project } from "@/models";
 import { useHasUserVoted } from "@/hooks/useBarangayChain";
+import { useEffect } from "react";
 
 interface VotingSectionProps {
   projectId: number;
@@ -27,11 +28,17 @@ export function VotingSection({
   isVerifyingMilestone,
   onVerify,
 }: VotingSectionProps) {
-  const { data: hasVoted } = useHasUserVoted(
+  const { data: hasVoted, refetch } = useHasUserVoted(
     projectId,
     milestoneIndex,
     userAddress
   );
+
+  useEffect(() => {
+    if (milestone.upvotes !== undefined || milestone.downvotes !== undefined) {
+      refetch();
+    }
+  }, [milestone.upvotes, milestone.downvotes]);
 
   return (
     <Box sx={{ mb: 2 }}>

@@ -55,8 +55,8 @@ export function BudgetTab({ project }: BudgetTabProps) {
           cumulativeRelease: 0,
           status: milestone.status,
           isReleased:
-            releaseAmount === 0 &&
-            project.currentMilestone === project.milestoneCount - 2
+            project.currentMilestone === project.milestoneCount - 1 &&
+            releaseAmount === 0
               ? true
               : milestone.isReleased,
         };

@@ -262,9 +262,9 @@ contract BarangayChain is IBarangayChain, AccessManaged {
         Vendor storage vendor = vendors[project.vendorId];
 
         if (isProjectCompleted) {
-            vendor.totalProjectsDone += 1;
+            vendor.totalProjectsDone++;
         } else {
-            project.currentMilestone = currentMilestone + 1;
+            project.currentMilestone++;
         }
 
         if (payment > 0) {

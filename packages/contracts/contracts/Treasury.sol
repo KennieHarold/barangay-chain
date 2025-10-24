@@ -68,7 +68,7 @@ contract Treasury is ITreasury, IERC1363Receiver, AccessManaged {
             "Treasury::releaseFunds: Allocation reached for this category"
         );
 
-        expenses[category] = amount;
+        expenses[category] += amount;
         IERC20(TREASURY_TOKEN).safeTransfer(to, amount);
 
         emit FundsReleased(to, amount, category);

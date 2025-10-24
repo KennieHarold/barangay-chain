@@ -12,7 +12,10 @@ import {
   Button,
   Alert,
 } from "@mui/material";
-import { Upload as UploadIcon } from "@mui/icons-material";
+import {
+  CheckCircleOutlineRounded,
+  Upload as UploadIcon,
+} from "@mui/icons-material";
 import { useNotification } from "@blockscout/app-sdk";
 import { enqueueSnackbar } from "notistack";
 
@@ -56,18 +59,21 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
     hash: submitHash,
     isSuccess: isSuccessfullySubmitted,
     isPending: isSubmittingMilestone,
+    isConfirming: isConfirmingMilestoneSubmission,
   } = useSubmitMilestone();
   const {
     mutate: verifyMutate,
     hash: verifyHash,
     isSuccess: isSuccessfullyVerified,
     isPending: isVerifyingMilestone,
+    isConfirming: isConfirmingVoting,
   } = useVerifyMilestone();
   const {
     mutate: completeMutate,
     hash: completeHash,
     isSuccess: isSuccessfullyCompleted,
     isPending: isCompletingMilestone,
+    isConfirming: isConfirmingCompletion,
   } = useCompleteMilestone();
 
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
@@ -371,7 +377,9 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
                         milestoneIndex={index}
                         milestone={milestone}
                         userAddress={address}
-                        isVerifyingMilestone={isVerifyingMilestone}
+                        isVerifyingMilestone={
+                          isVerifyingMilestone || isConfirmingVoting
+                        }
                         onVerify={handleVerify}
                       />
                     </Box>
@@ -428,20 +436,30 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
                           {milestone.upvotes - milestone.downvotes} net
                         </Alert>
                       ) : null}
-                      <Button
-                        variant="contained"
-                        color="success"
-                        size="small"
-                        onClick={handleCompleteMilestone}
-                        fullWidth
-                        disabled={
-                          isCompletingMilestone ||
-                          milestone.upvotes <= milestone.downvotes ||
-                          milestone.upvotes - milestone.downvotes < 5
-                        }
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "flex-end",
+                        }}
                       >
-                        {isCompletingMilestone ? "Processing..." : "Complete"}
-                      </Button>
+                        <Button
+                          variant="contained"
+                          color="success"
+                          size="small"
+                          endIcon={<CheckCircleOutlineRounded />}
+                          onClick={handleCompleteMilestone}
+                          disabled={
+                            isCompletingMilestone ||
+                            isConfirmingCompletion ||
+                            milestone.upvotes <= milestone.downvotes ||
+                            milestone.upvotes - milestone.downvotes < 5
+                          }
+                        >
+                          {isCompletingMilestone || isConfirmingCompletion
+                            ? "Processing..."
+                            : "Complete"}
+                        </Button>
+                      </Box>
                     </Box>
                   )}
               </Box>
@@ -468,7 +486,11 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
         onUploadSiteProgress={handleUploadSiteProgress}
         onUploadReceipts={handleUploadReceipts}
         onSubmit={handleSubmitMilestone}
-        loading={isSubmittingMilestone || isUploadingJson}
+        loading={
+          isSubmittingMilestone ||
+          isUploadingJson ||
+          isConfirmingMilestoneSubmission
+        }
       />
     </Box>
   );
