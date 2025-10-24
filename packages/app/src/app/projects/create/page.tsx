@@ -30,7 +30,10 @@ import { useNotification } from "@blockscout/app-sdk";
 import { Category, CreateProjectData, UserRole } from "@/models";
 import { categoryLabels } from "@/constants/project";
 import { Navbar } from "@/components/Navbar";
-import { useCreateProject } from "@/hooks/useBarangayChain";
+import {
+  useCreateProject,
+  useFetchVendorsList,
+} from "@/hooks/useBarangayChain";
 import { useUploadJsonMutation } from "@/hooks/useIPFS";
 import { MIN_MILESTONES, ProjectFormData, schema } from "./schema";
 import { DEFAULT_CHAIN_ID } from "@/lib/providers";
@@ -53,6 +56,7 @@ export default function CreateProjectPage() {
     useUploadJsonMutation();
   const { openTxToast } = useNotification();
   const { role, isLoading: isCheckingRole } = useUserRole(address);
+  const { data: vendors } = useFetchVendorsList();
 
   const [mounted, setMounted] = useState(false);
 
@@ -73,7 +77,7 @@ export default function CreateProjectPage() {
       title: "",
       description: "",
       proposer: address,
-      vendor: "",
+      vendor: 0,
       budget: "",
       category: Category.Infrastructure,
       startDate: "",
@@ -164,7 +168,7 @@ export default function CreateProjectPage() {
 
       const projectData: CreateProjectData = {
         proposer: data.proposer as Address,
-        vendorId: 1,
+        vendorId: data.vendor,
         budget: budgetInUnits,
         category: data.category,
         startDate: startTimestamp,
@@ -291,15 +295,25 @@ export default function CreateProjectPage() {
                   render={({ field }) => (
                     <TextField
                       {...field}
-                      label="Vendor Address"
-                      placeholder="0x..."
+                      label="Vendor"
+                      select
                       fullWidth
                       error={!!errors.vendor}
                       helperText={
-                        errors.vendor?.message ||
-                        "Wallet address of the contractor/vendor"
+                        errors.vendor?.message || "Select a contractor/vendor"
                       }
-                    />
+                      disabled={!vendors || vendors.length === 0}
+                    >
+                      <MenuItem value={0} disabled>
+                        Select a vendor
+                      </MenuItem>
+                      {vendors?.map((vendor) => (
+                        <MenuItem key={vendor.id} value={vendor.id}>
+                          {vendor.name} ({vendor.walletAddress.slice(0, 6)}...
+                          {vendor.walletAddress.slice(-4)})
+                        </MenuItem>
+                      ))}
+                    </TextField>
                   )}
                 />
               </Grid>

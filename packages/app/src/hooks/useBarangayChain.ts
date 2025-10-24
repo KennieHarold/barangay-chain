@@ -271,7 +271,12 @@ export function useFetchVendorInfo(vendorId: bigint) {
   });
 }
 
-export function useFetchVendorsList() {
+export function useFetchVendorsList(): {
+  data: Contractor[];
+  total: number;
+  isLoading: boolean;
+  isFetched: boolean;
+} {
   const {
     data: length,
     isLoading: isVendorCounterLoading,
@@ -365,7 +370,7 @@ export function useFetchVendorsList() {
 
   return {
     data: vendors,
-    total: length,
+    total: Number(length),
     isLoading,
     isFetched,
   };

@@ -9,7 +9,7 @@ export interface ProjectFormData {
   title: string;
   description: string;
   proposer: string;
-  vendor: string;
+  vendor: number;
   budget: string;
   category: Category;
   startDate: string;
@@ -30,14 +30,9 @@ export const schema: yup.ObjectSchema<ProjectFormData> = yup.object({
       return isAddress(value);
     }),
   vendor: yup
-    .string()
-    .required("Vendor address is required")
-    .test("is-valid-address", "Invalid Ethereum address", (value) => {
-      if (!value) {
-        return false;
-      }
-      return isAddress(value);
-    }),
+    .number()
+    .required("Vendor is required")
+    .min(1, "Please select a vendor"),
   budget: yup
     .string()
     .required("Budget is required")
