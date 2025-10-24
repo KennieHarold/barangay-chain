@@ -91,6 +91,10 @@ contract BarangayChain is IBarangayChain, AccessManaged {
             vendor.isWhitelisted,
             "BarangayChain::createProject: Vendor not whitelisted"
         );
+        require(
+            TREASURY.isWithinAllowableAllocation(category, budget),
+            "BarangayChain::createProject: Allocation reached for this category"
+        );
 
         projectCounter++;
 

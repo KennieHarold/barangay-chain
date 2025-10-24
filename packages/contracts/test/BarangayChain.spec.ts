@@ -111,10 +111,9 @@ describe("BarangayChain", function () {
     await treasury.setProtocol(barangayChain);
 
     // Fund treasury
-    await treasuryToken.connect(admin).transfer(
-      treasury,
-      parseEther(String(1_000_000_000)) // 1 billion
-    );
+    await treasuryToken
+      .connect(admin)
+      .transfer(treasury, parseEther(String(1_000_000)));
 
     // Mint CitizenNFT
     await citizenNFT.safeMint(alice, "1");
@@ -133,16 +132,18 @@ describe("BarangayChain", function () {
     const startDate = await networkHelpers.time.latest();
     const endDate = startDate + 1825 * 24 * 60 * 60; // 5 years from now
 
-    const tx = await barangayChain.connect(official).createProject(
-      official,
-      1n,
-      parseEther(String(1_000_000)), // 1 million
-      0n,
-      BigInt(startDate),
-      BigInt(endDate),
-      TEST_METADATA_URI,
-      [3000n, 6000n, 1000n]
-    );
+    const tx = await barangayChain
+      .connect(official)
+      .createProject(
+        official,
+        1n,
+        parseEther(String(280_000)),
+        0n,
+        BigInt(startDate),
+        BigInt(endDate),
+        TEST_METADATA_URI,
+        [3000n, 6000n, 1000n]
+      );
 
     return { tx, startDate, endDate };
   }
@@ -199,16 +200,18 @@ describe("BarangayChain", function () {
 
     it("should revert when non-official creates project", async function () {
       await expect(
-        barangayChain.connect(alice).createProject(
-          official,
-          1n,
-          parseEther(String(1_000_000)), // 1 million
-          0n,
-          BigInt(startDate),
-          BigInt(endDate),
-          TEST_METADATA_URI,
-          [3000n, 6000n, 1000n]
-        )
+        barangayChain
+          .connect(alice)
+          .createProject(
+            official,
+            1n,
+            parseEther(String(280_000)),
+            0n,
+            BigInt(startDate),
+            BigInt(endDate),
+            TEST_METADATA_URI,
+            [3000n, 6000n, 1000n]
+          )
       ).to.be.rejectedWith(
         `AccessManagedUnauthorized("${await alice.getAddress()}")`
       );
@@ -216,24 +219,26 @@ describe("BarangayChain", function () {
 
     it("should successfully create project", async function () {
       await expect(
-        barangayChain.connect(official).createProject(
-          official,
-          1n,
-          parseEther(String(1_000_000)), // 1 million
-          0n,
-          BigInt(startDate),
-          BigInt(endDate),
-          TEST_METADATA_URI,
-          [3000n, 6000n, 1000n]
-        )
+        barangayChain
+          .connect(official)
+          .createProject(
+            official,
+            1n,
+            parseEther(String(280_000)),
+            0n,
+            BigInt(startDate),
+            BigInt(endDate),
+            TEST_METADATA_URI,
+            [3000n, 6000n, 1000n]
+          )
       )
         .to.emit(barangayChain, "ProjectCreated")
         .withArgs(
           1n,
           official,
           1n,
-          parseEther(String(300_000)),
-          parseEther(String(1_000_000)),
+          parseEther(String(84_000)),
+          parseEther(String(280_000)),
           0n,
           BigInt(startDate),
           BigInt(endDate),
@@ -241,9 +246,9 @@ describe("BarangayChain", function () {
           TEST_METADATA_URI
         )
         .to.emit(treasury, "FundsReleased")
-        .withArgs(vendor, parseEther(String(300_000)), 0n)
+        .withArgs(vendor, parseEther(String(84_000)), 0n)
         .to.emit(treasuryToken, "Transfer")
-        .withArgs(treasury, vendor, parseEther(String(300_000)));
+        .withArgs(treasury, vendor, parseEther(String(84_000)));
 
       expect(await barangayChain.projectCounter()).to.be.eq(1);
       expect(await barangayChain.projects(1)).to.be.eqls([
@@ -252,8 +257,8 @@ describe("BarangayChain", function () {
         BigInt(endDate),
         3n,
         1n,
-        parseEther(String(300_000)),
-        parseEther(String(1_000_000)), // 1 million
+        parseEther(String(84_000)),
+        parseEther(String(280_000)),
         0n,
         0n,
         TEST_METADATA_URI,
@@ -277,16 +282,18 @@ describe("BarangayChain", function () {
 
     it("should revert release bps template is too low", async function () {
       await expect(
-        barangayChain.connect(official).createProject(
-          official,
-          1n,
-          parseEther(String(1_000_000)), // 1 million
-          0n,
-          BigInt(startDate),
-          BigInt(endDate),
-          TEST_METADATA_URI,
-          [3000n, 7000n]
-        )
+        barangayChain
+          .connect(official)
+          .createProject(
+            official,
+            1n,
+            parseEther(String(280_000)),
+            0n,
+            BigInt(startDate),
+            BigInt(endDate),
+            TEST_METADATA_URI,
+            [3000n, 7000n]
+          )
       ).to.be.rejectedWith(
         "BarangayChain::createProject: Too low release bps length"
       );
@@ -404,11 +411,11 @@ describe("BarangayChain", function () {
     it("should successfully complete milestone", async function () {
       await expect(barangayChain.connect(official).completeMilestone(1n))
         .to.be.emit(barangayChain, "MilestoneCompleted")
-        .withArgs(1n, 0n, parseEther(String(600_000)), false)
+        .withArgs(1n, 0n, parseEther(String(168_000)), false)
         .to.emit(treasury, "FundsReleased")
-        .withArgs(vendor, parseEther(String(600_000)), 0n)
+        .withArgs(vendor, parseEther(String(168_000)), 0n)
         .to.emit(treasuryToken, "Transfer")
-        .withArgs(treasury, vendor, parseEther(String(600_000)));
+        .withArgs(treasury, vendor, parseEther(String(168_000)));
 
       expect((await barangayChain.projects(1n)).currentMilestone).to.be.eql(1n);
       expect(
@@ -463,11 +470,11 @@ describe("BarangayChain", function () {
     it("should complete project without fail", async function () {
       expect(completeMilestone2Tx)
         .to.be.emit(barangayChain, "MilestoneCompleted")
-        .withArgs(1n, 2n, parseEther(String(100_000)), true)
+        .withArgs(1n, 2n, parseEther(String(28_000)), true)
         .to.emit(treasury, "FundsReleased")
-        .withArgs(vendor, parseEther(String(100_000)), 0n)
+        .withArgs(vendor, parseEther(String(28_000)), 0n)
         .to.emit(treasuryToken, "Transfer")
-        .withArgs(treasury, vendor, parseEther(String(100_000)));
+        .withArgs(treasury, vendor, parseEther(String(28_000)));
     });
 
     it("should marked all milestones to done", async function () {

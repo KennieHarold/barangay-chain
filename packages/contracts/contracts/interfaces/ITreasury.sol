@@ -37,4 +37,13 @@ interface ITreasury {
     ) external;
 
     function emergencyWithdraw() external;
+
+    function expenses(Category category) external view returns (uint256);
+
+    function allocations(Category category) external view returns (uint16);
+
+    function isWithinAllowableAllocation(
+        Category category,
+        uint256 amount
+    ) external view returns (bool);
 }

@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {AccessManaged} from "@openzeppelin/contracts/access/manager/AccessManaged.sol";
-import {IERC1363Receiver} from "@openzeppelin/contracts/interfaces/IERC1363Receiver.sol";
 
 import "./interfaces/ITreasury.sol";
 
-contract Treasury is ITreasury, IERC1363Receiver, AccessManaged {
-    using SafeERC20 for IERC20;
+contract Treasury is ITreasury, AccessManaged {
+    using SafeERC20 for IERC20Metadata;
 
     // Immutables
     address public immutable TREASURY_TOKEN;
 
     // Constants
     uint256 public constant BASIS_POINT = 10000;
+    uint256 public constant MAX_ALLOWABLE_BUDGET_UNSCALED = 1000000;
 
     // State variables
     address public protocol;
@@ -55,21 +55,19 @@ contract Treasury is ITreasury, IERC1363Receiver, AccessManaged {
         uint256 amount,
         Category category
     ) external onlyProtocol {
-        require(
-            IERC20(TREASURY_TOKEN).balanceOf(address(this)) > amount,
-            "Treasury: Insufficient funds"
-        );
+        require(to != address(0), "Treasury::releaseFunds: Invalid recipient");
 
-        uint256 funds = IERC20(TREASURY_TOKEN).balanceOf(address(this));
-        uint256 currentAllocation = (expenses[category] / funds) * BASIS_POINT;
+        IERC20Metadata treasuryToken = IERC20Metadata(TREASURY_TOKEN);
 
+        uint256 funds = treasuryToken.balanceOf(address(this));
+        require(funds > amount, "Treasury::releaseFunds: Insufficient funds");
         require(
-            currentAllocation < allocations[category],
+            isWithinAllowableAllocation(category, amount),
             "Treasury::releaseFunds: Allocation reached for this category"
         );
 
         expenses[category] += amount;
-        IERC20(TREASURY_TOKEN).safeTransfer(to, amount);
+        treasuryToken.safeTransfer(to, amount);
 
         emit FundsReleased(to, amount, category);
     }
@@ -84,20 +82,28 @@ contract Treasury is ITreasury, IERC1363Receiver, AccessManaged {
         emit SetProtocol(protocol_);
     }
 
-    function onTransferReceived(
-        address operator,
-        address from,
-        uint256 value,
-        bytes calldata data
-    ) external override returns (bytes4) {
-        emit TreasuryDeposit(operator, from, value, data);
-        return IERC1363Receiver.onTransferReceived.selector;
-    }
-
     function emergencyWithdraw() external restricted {
-        uint256 funds = IERC20(TREASURY_TOKEN).balanceOf(address(this));
-        IERC20(TREASURY_TOKEN).safeTransfer(msg.sender, funds);
+        IERC20Metadata treasuryToken = IERC20Metadata(TREASURY_TOKEN);
+
+        uint256 funds = treasuryToken.balanceOf(address(this));
+        treasuryToken.safeTransfer(msg.sender, funds);
 
         emit EmergencyWithdraw(msg.sender, funds);
+    }
+
+    function isWithinAllowableAllocation(
+        Category category,
+        uint256 amount
+    ) public view returns (bool) {
+        IERC20Metadata treasuryToken = IERC20Metadata(TREASURY_TOKEN);
+
+        uint256 maxAllowableBudgeInUnits = MAX_ALLOWABLE_BUDGET_UNSCALED *
+            (10 ** uint256(treasuryToken.decimals()));
+
+        uint256 currentExpensesPlusAmount = expenses[category] + amount;
+        uint256 newAllocation = (currentExpensesPlusAmount * BASIS_POINT) /
+            maxAllowableBudgeInUnits;
+
+        return newAllocation <= allocations[category];
     }
 }
