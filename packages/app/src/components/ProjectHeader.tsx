@@ -133,7 +133,7 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
               Contractor
             </Typography>
             <Typography variant="body1" fontFamily="monospace">
-              {`${metadata.name} (${shortenAddress(vendor?.[0] || "0x")})`}
+              {`${metadata?.name} (${shortenAddress(vendor?.[0] || "0x")})`}
             </Typography>
           </Box>
         </Grid>

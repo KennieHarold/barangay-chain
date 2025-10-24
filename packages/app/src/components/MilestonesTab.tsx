@@ -46,10 +46,12 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
   const { address } = useAccount();
   const { openTxToast } = useNotification();
   const { data: blockTimestamp } = useBlockTimestamp();
-  const { data: isOfficial } = useHasRole(
+  const { data: officialRoleData } = useHasRole(
     UserRole.Official,
     address as Address
   );
+  const isOfficial = officialRoleData?.[0];
+
   const { data: contractor } = useFetchVendorInfo(Number(project.vendorId));
   const { data: nftBalance } = useBalanceOf(address as Address);
   const { mutateAsync: uploadImageMutate } = useUploadImageMutation();
