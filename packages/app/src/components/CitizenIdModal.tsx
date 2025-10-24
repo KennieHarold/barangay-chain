@@ -7,24 +7,43 @@ import {
   Avatar,
   Divider,
 } from "@mui/material";
+import { useAccount } from "wagmi";
 import { Close as CloseIcon } from "@mui/icons-material";
+
+import { useTokenUri } from "@/hooks/useCitizenNFT";
+import { getCidFromUri } from "@/utils/format";
+import { useFetchMetadataQuery } from "@/hooks/useIPFS";
 
 interface CitizenIdModalProps {
   open: boolean;
   onClose: () => void;
 }
 
-const mockCitizenData = {
-  profilePicture: "https://i.pravatar.cc/150?img=12",
-  walletAddress: "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
-  firstName: "Juan",
-  middleName: "Santos",
-  lastName: "Dela Cruz",
-  birthday: "January 15, 1990",
-  address: "123 Mabini Street, Barangay San Roque, Manila, Philippines",
-};
+interface IPFSMetadata {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  birthday: string;
+  address: string;
+  profilePicture: string;
+}
 
 export function CitizenIdModal({ open, onClose }: CitizenIdModalProps) {
+  const { address: walletAddress } = useAccount();
+  const { data: tokenUri } = useTokenUri(0); // todo: Get actual token id
+
+  const cid = getCidFromUri(tokenUri || "");
+  const { data: rawMetadata } = useFetchMetadataQuery(cid);
+
+  const {
+    firstName = "",
+    middleName = "",
+    lastName = "",
+    birthday = "",
+    address = "",
+    profilePicture = "",
+  } = (rawMetadata?.data?.valueOf() as IPFSMetadata) ?? {};
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <IconButton
@@ -106,8 +125,8 @@ export function CitizenIdModal({ open, onClose }: CitizenIdModalProps) {
               <Box sx={{ display: "flex", gap: 3 }}>
                 <Box sx={{ flexShrink: 0 }}>
                   <Avatar
-                    src={mockCitizenData.profilePicture}
-                    alt={`${mockCitizenData.firstName} ${mockCitizenData.lastName}`}
+                    src={profilePicture}
+                    alt={`${firstName} ${lastName}`}
                     sx={{
                       width: 120,
                       height: 120,
@@ -140,8 +159,7 @@ export function CitizenIdModal({ open, onClose }: CitizenIdModalProps) {
                         lineHeight: 1.2,
                       }}
                     >
-                      {mockCitizenData.firstName} {mockCitizenData.middleName}{" "}
-                      {mockCitizenData.lastName}
+                      {firstName} {middleName} {lastName}
                     </Typography>
                   </Box>
 
@@ -171,7 +189,7 @@ export function CitizenIdModal({ open, onClose }: CitizenIdModalProps) {
                         variant="body2"
                         sx={{ fontWeight: 500, color: "text.primary" }}
                       >
-                        {mockCitizenData.birthday}
+                        {birthday}
                       </Typography>
                     </Box>
                   </Box>
@@ -205,7 +223,7 @@ export function CitizenIdModal({ open, onClose }: CitizenIdModalProps) {
                     color: "text.primary",
                   }}
                 >
-                  {mockCitizenData.walletAddress}
+                  {walletAddress}
                 </Typography>
               </Box>
 
@@ -226,7 +244,7 @@ export function CitizenIdModal({ open, onClose }: CitizenIdModalProps) {
                   variant="body2"
                   sx={{ fontWeight: 500, color: "text.primary" }}
                 >
-                  {mockCitizenData.address}
+                  {address}
                 </Typography>
               </Box>
             </Box>

@@ -20,12 +20,18 @@ import {
   CloudUpload as CloudUploadIcon,
 } from "@mui/icons-material";
 import { useAccount } from "wagmi";
-import { isAddress } from "viem";
+import { Address, isAddress } from "viem";
+import { enqueueSnackbar } from "notistack";
 
 import { Navbar } from "@/components/Navbar";
 import { useUserRole } from "@/hooks/useUserRole";
 import { UserRole } from "@/models";
 import { Unauthorized } from "@/components/Unauthorized";
+import { useNotification } from "@blockscout/app-sdk";
+import { useUploadImageMutation, useUploadJsonMutation } from "@/hooks/useIPFS";
+import { useMint } from "@/hooks/useCitizenNFT";
+import { DEFAULT_CHAIN_ID } from "@/lib/providers";
+import { getCidFromUri } from "@/utils/format";
 
 const schema = yup.object({
   walletAddress: yup
@@ -51,6 +57,18 @@ export default function IssueCitizenIDPage() {
   const router = useRouter();
   const { address } = useAccount();
   const { role, isLoading: isCheckingRole } = useUserRole(address);
+  const { openTxToast } = useNotification();
+  const {
+    mutate,
+    hash,
+    isSuccess,
+    isPending: isPendingMint,
+    isConfirming: isConfirmingMint,
+  } = useMint();
+  const { mutateAsync: uploadJsonMutate, isPending: isUploadingJson } =
+    useUploadJsonMutation();
+  const { mutateAsync: uploadImageMutate, isPending: isUploadingImage } =
+    useUploadImageMutation();
 
   const [mounted, setMounted] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string>("");
@@ -78,9 +96,50 @@ export default function IssueCitizenIDPage() {
   const firstName = watch("firstName");
   const profilePicture = watch("profilePicture");
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const isLoading =
+    isPendingMint || isConfirmingMint || isUploadingImage || isUploadingJson;
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setValue("profilePicture", file);
+    }
+  };
+
+  const onSubmit = async (data: FormData) => {
+    try {
+      if (!data.profilePicture) {
+        throw new Error("File not found");
+      }
+
+      const ppUri = await uploadImageMutate(data.profilePicture);
+      if (!ppUri) {
+        throw new Error("Upload failed: Can't find URL");
+      }
+
+      const uri = await uploadJsonMutate({
+        firstName: data.firstName,
+        middleName: data.middleName,
+        lastName: data.lastName,
+        birthday: data.birthday,
+        address: data.citizenAddress,
+        profilePicture: ppUri,
+      });
+
+      if (!uri) {
+        throw new Error("Upload failed: Can't find URL");
+      }
+
+      mutate(data.walletAddress as Address, getCidFromUri(uri));
+    } catch (error) {
+      console.error("Error creating citizen ID:", error);
+      enqueueSnackbar({
+        message: `Error creating citizen ID: ${error}`,
+        variant: "error",
+        anchorOrigin: { vertical: "top", horizontal: "right" },
+      });
+    }
+  };
 
   useEffect(() => {
     if (profilePicture) {
@@ -92,27 +151,22 @@ export default function IssueCitizenIDPage() {
     }
   }, [profilePicture]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setValue("profilePicture", file);
+  useEffect(() => {
+    if (hash) {
+      openTxToast(DEFAULT_CHAIN_ID.toString(), hash);
     }
-  };
+  }, [hash]);
 
-  const onSubmit = (data: FormData) => {
-    console.log({
-      walletAddress: data.walletAddress,
-      firstName: data.firstName,
-      middleName: data.middleName,
-      lastName: data.lastName,
-      birthday: data.birthday,
-      address: data.citizenAddress,
-      profilePicture: data.profilePicture,
-    });
+  useEffect(() => {
+    if (isSuccess) {
+      reset();
+      setPreviewUrl("");
+    }
+  }, [isSuccess]);
 
-    reset();
-    setPreviewUrl("");
-  };
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (isCheckingRole || !mounted) {
     return <></>;
@@ -160,7 +214,7 @@ export default function IssueCitizenIDPage() {
                   variant="outlined"
                   startIcon={<CloudUploadIcon />}
                 >
-                  Upload Profile Picture
+                  Select Profile Picture
                   <input
                     type="file"
                     hidden
@@ -265,8 +319,13 @@ export default function IssueCitizenIDPage() {
                 <Button variant="outlined" onClick={() => router.back()}>
                   Cancel
                 </Button>
-                <Button type="submit" variant="contained" size="large">
-                  Issue Citizen ID
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Minting..." : "Issue Citizen ID"}
                 </Button>
               </Box>
             </Box>

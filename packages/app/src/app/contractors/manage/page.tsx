@@ -84,9 +84,9 @@ export default function ManageContractorsPage() {
 
       mutate(data.walletAddress as Address, uri);
     } catch (error) {
-      console.error("Error creating project:", error);
+      console.error("Error creating contractor:", error);
       enqueueSnackbar({
-        message: `Error creating project: ${error}`,
+        message: `Error creating contractor: ${error}`,
         variant: "error",
         anchorOrigin: { vertical: "top", horizontal: "right" },
       });
