@@ -39,6 +39,7 @@ import { MIN_MILESTONES, ProjectFormData, schema } from "./schema";
 import { DEFAULT_CHAIN_ID } from "@/lib/providers";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Unauthorized } from "@/components/Unauthorized";
+import { shortenAddress } from "@/utils/format";
 
 const BASIS_POINTS = 10000;
 
@@ -309,8 +310,9 @@ export default function CreateProjectPage() {
                       </MenuItem>
                       {vendors?.map((vendor) => (
                         <MenuItem key={vendor.id} value={vendor.id}>
-                          {vendor.name} ({vendor.walletAddress.slice(0, 6)}...
-                          {vendor.walletAddress.slice(-4)})
+                          {`${vendor.name} (${shortenAddress(
+                            vendor.walletAddress
+                          )})`}
                         </MenuItem>
                       ))}
                     </TextField>

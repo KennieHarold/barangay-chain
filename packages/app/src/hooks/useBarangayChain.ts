@@ -263,11 +263,14 @@ export function useVendorCounter() {
   });
 }
 
-export function useFetchVendorInfo(vendorId: bigint) {
+export function useFetchVendorInfo(vendorId: number) {
   return useReadContract({
     ...baseContractArgs,
-    functionName: "vendors",
+    functionName: "vendors" as const,
     args: [BigInt(vendorId)],
+    query: {
+      enabled: typeof vendorId === "number" && vendorId > 0,
+    },
   });
 }
 

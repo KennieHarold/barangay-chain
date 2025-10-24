@@ -11,18 +11,29 @@ import {
 } from "@mui/material";
 
 import { Project, MilestoneStatus } from "@/models";
-import { formatDate } from "@/utils/format";
+import { formatDate, getCidFromUri, shortenAddress } from "@/utils/format";
 import {
   statusColors,
   statusLabels,
   categoryLabels,
 } from "@/constants/project";
+import { useFetchVendorInfo } from "@/hooks/useBarangayChain";
+import { useFetchMetadataQuery } from "@/hooks/useIPFS";
 
 interface ProjectHeaderProps {
   project: Project;
 }
 
 export function ProjectHeader({ project }: ProjectHeaderProps) {
+  const { data: vendor } = useFetchVendorInfo(Number(project.vendorId));
+
+  const cid = getCidFromUri(vendor?.[1] || "");
+  const { data: rawMetadata } = useFetchMetadataQuery(cid);
+  const metadata = rawMetadata?.data?.valueOf() as {
+    name: string;
+    location: string;
+  };
+
   const currentMilestone = project.milestones[project.currentMilestone];
   const completedMilestones = project.milestones.filter(
     (m) => m.status === MilestoneStatus.Done
@@ -119,10 +130,10 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
         <Grid size={{ xs: 12, md: 6 }}>
           <Box>
             <Typography variant="caption" color="text.secondary">
-              Contractor (Vendor)
+              Contractor
             </Typography>
             <Typography variant="body1" fontFamily="monospace">
-              {project.vendor}
+              {`${metadata.name} (${shortenAddress(vendor?.[0] || "0x")})`}
             </Typography>
           </Box>
         </Grid>

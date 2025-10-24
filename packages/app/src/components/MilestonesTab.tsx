@@ -50,7 +50,7 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
     UserRole.Official,
     address as Address
   );
-  const { data: contractor } = useFetchVendorInfo(project.vendorId);
+  const { data: contractor } = useFetchVendorInfo(Number(project.vendorId));
   const { data: nftBalance } = useBalanceOf(address as Address);
   const { mutateAsync: uploadImageMutate } = useUploadImageMutation();
   const { mutateAsync: uploadJsonMutate, isPending: isUploadingJson } =

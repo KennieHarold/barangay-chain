@@ -12,9 +12,11 @@ import {
 } from "@mui/material";
 
 import { statusColors, statusLabels } from "@/constants/project";
-import { formatDate, shortenAddress } from "@/utils/format";
+import { formatDate, getCidFromUri, shortenAddress } from "@/utils/format";
 import { useProjectData } from "@/hooks/useProjectData";
 import { MilestoneStatus } from "@/models";
+import { useFetchVendorInfo } from "@/hooks/useBarangayChain";
+import { useFetchMetadataQuery } from "@/hooks/useIPFS";
 
 interface ProjectCardProps {
   projectId: number;
@@ -23,6 +25,14 @@ interface ProjectCardProps {
 export function ProjectCard({ projectId }: ProjectCardProps) {
   const router = useRouter();
   const { project } = useProjectData(projectId);
+  const { data: vendor } = useFetchVendorInfo(Number(project.vendorId));
+
+  const cid = getCidFromUri(vendor?.[1] || "");
+  const { data: rawMetadata } = useFetchMetadataQuery(cid);
+  const metadata = rawMetadata?.data?.valueOf() as {
+    name: string;
+    location: string;
+  };
 
   const currentMilestone =
     project?.milestones && typeof project?.currentMilestone === "number"
@@ -119,7 +129,7 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
             Proposer: {shortenAddress(project.proposer)}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Vendor: {shortenAddress(project.vendor)}
+            Contractor: {metadata?.name || ""}
           </Typography>
         </Box>
         <Box>

@@ -133,10 +133,10 @@ function parseContractArgsToObject(args: any): { info: ProjectOnChain } | null {
   return {
     info: {
       proposer: args[0],
-      vendorId: args[1],
-      startDate: args[2],
-      endDate: args[3],
-      milestoneCount: Number(args[4]),
+      startDate: args[1],
+      endDate: args[2],
+      milestoneCount: Number(args[3]),
+      vendorId: args[4],
       advancePayment: args[5],
       budget: args[6],
       category: args[7],
