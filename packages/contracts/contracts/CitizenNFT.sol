@@ -2,17 +2,23 @@
 pragma solidity ^0.8.28;
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import {ERC721Pausable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import {AccessManaged} from "@openzeppelin/contracts/access/manager/AccessManaged.sol";
 
 /**
  * @title CitizenNFT
- * @author Barangay Chain Team
- * @notice NFT contract representing citizenship in the barangay system
- * @dev Extends ERC721 with URI storage and pausable functionality. Citizens can vote on project milestones
+ * @notice NFT contract representing citizenship in the barangay system with enumerable support
+ * @dev Extends ERC721 with enumerable, URI storage, and pausable functionality. Citizens can vote on project milestones
  */
-contract CitizenNFT is ERC721, ERC721URIStorage, ERC721Pausable, AccessManaged {
+contract CitizenNFT is
+    ERC721,
+    ERC721Enumerable,
+    ERC721URIStorage,
+    ERC721Pausable,
+    AccessManaged
+{
     /// @dev Counter for token IDs
     uint256 private _nextTokenId;
 
@@ -78,8 +84,25 @@ contract CitizenNFT is ERC721, ERC721URIStorage, ERC721Pausable, AccessManaged {
         address to,
         uint256 tokenId,
         address auth
-    ) internal override(ERC721, ERC721Pausable) returns (address) {
+    )
+        internal
+        override(ERC721, ERC721Enumerable, ERC721Pausable)
+        returns (address)
+    {
         return super._update(to, tokenId, auth);
+    }
+
+    /**
+     * @notice Internal function to increase the balance of an account
+     * @dev Overrides both ERC721 and ERC721Enumerable to ensure compatibility
+     * @param account Address whose balance will be increased
+     * @param value Amount to increase the balance by
+     */
+    function _increaseBalance(
+        address account,
+        uint128 value
+    ) internal override(ERC721, ERC721Enumerable) {
+        super._increaseBalance(account, value);
     }
 
     /**
@@ -102,7 +125,12 @@ contract CitizenNFT is ERC721, ERC721URIStorage, ERC721Pausable, AccessManaged {
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override(ERC721, ERC721URIStorage) returns (bool) {
+    )
+        public
+        view
+        override(ERC721, ERC721Enumerable, ERC721URIStorage)
+        returns (bool)
+    {
         return super.supportsInterface(interfaceId);
     }
 }
