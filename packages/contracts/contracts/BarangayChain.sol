@@ -132,7 +132,7 @@ contract BarangayChain is IBarangayChain, AccessManaged {
             "BarangayChain::createProject: Release bps length not equal to 100"
         );
 
-        Vendor memory vendor = vendors[vendorId];
+        Vendor storage vendor = vendors[vendorId];
         require(
             vendor.isWhitelisted,
             "BarangayChain::createProject: Vendor not whitelisted"
@@ -182,8 +182,10 @@ contract BarangayChain is IBarangayChain, AccessManaged {
             );
         }
 
+        vendor.totalDisbursement += advancePayment;
+        amountFundsReleased[projectCounter] += advancePayment;
+
         TREASURY.releaseFunds(vendor.walletAddress, advancePayment, category);
-        amountFundsReleased[projectCounter] = advancePayment;
 
         emit ProjectCreated(
             projectCounter,

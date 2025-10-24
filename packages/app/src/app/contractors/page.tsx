@@ -78,7 +78,7 @@ export default function RegisteredContractorsPage() {
                       sx={{ fontWeight: "bold", fontSize: "0.95rem" }}
                       align="center"
                     >
-                      Total Projects
+                      Total Projects Done
                     </TableCell>
                     <TableCell
                       sx={{ fontWeight: "bold", fontSize: "0.95rem" }}
