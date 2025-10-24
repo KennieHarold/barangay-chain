@@ -41,6 +41,22 @@ const DevelopmentDeployModule = buildModule("DevelopmentDeployModule", (m) => {
   m.call(
     accessManager,
     "setTargetFunctionRole",
+    [barangayChain, ["0x1898a1c7"], 1n],
+    {
+      id: "setAddVendorAccessRule",
+    }
+  );
+  m.call(
+    accessManager,
+    "setTargetFunctionRole",
+    [barangayChain, ["0x5b5d3c0a"], 1n],
+    {
+      id: "setVendorWhitelistAccessRule",
+    }
+  );
+  m.call(
+    accessManager,
+    "setTargetFunctionRole",
     [citizenNFT, ["0xd204c45e"], 1n],
     {
       id: "setSafeMintAccessRule",

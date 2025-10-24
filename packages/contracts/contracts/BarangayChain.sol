@@ -359,12 +359,15 @@ contract BarangayChain is IBarangayChain, AccessManaged {
 
     /**
      * @notice Registers a new vendor in the system
-     * @dev Creates a new vendor with whitelisted status
+     * @dev Only callable by authorized roles. Creates a new vendor with whitelisted status
      * @param walletAddress Address of the vendor's wallet
      * @param uri Metadata URI containing vendor information
      * @custom:emits VendorAdded
      */
-    function addVendor(address walletAddress, string memory uri) external {
+    function addVendor(
+        address walletAddress,
+        string memory uri
+    ) external restricted {
         require(
             walletAddress != address(0),
             "BarangayChain::addVendor: Invalid wallet address"
@@ -384,12 +387,15 @@ contract BarangayChain is IBarangayChain, AccessManaged {
 
     /**
      * @notice Updates the whitelist status of a vendor
-     * @dev Controls whether a vendor can be assigned to new projects
+     * @dev Only callable by authorized roles. Controls whether a vendor can be assigned to new projects
      * @param vendorId ID of the vendor
      * @param status true to whitelist, false to blacklist
      * @custom:emits SetVendorWhitelist
      */
-    function setVendorWhitelist(uint256 vendorId, bool status) external {
+    function setVendorWhitelist(
+        uint256 vendorId,
+        bool status
+    ) external restricted {
         Vendor storage vendor = vendors[vendorId];
 
         require(
