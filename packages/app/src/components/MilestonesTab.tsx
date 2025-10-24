@@ -416,6 +416,7 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
                           onClick={() => handleOpenSubmitDialog(index)}
                           disabled={
                             isSubmittingMilestone ||
+                            isConfirmingMilestoneSubmission ||
                             !hasStartDatePassed ||
                             hasEndDatePassed
                           }
