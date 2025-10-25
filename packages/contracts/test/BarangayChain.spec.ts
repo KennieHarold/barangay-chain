@@ -2,11 +2,8 @@ import { expect } from "chai";
 import { network } from "hardhat";
 import {
   ContractTransactionResponse,
-  keccak256,
   parseEther,
-  toUtf8Bytes,
   ZeroAddress,
-  ZeroHash,
   type Signer,
 } from "ethers";
 
@@ -104,6 +101,11 @@ describe("BarangayChain", function () {
     await accessManager.setTargetFunctionRole(
       barangayChain,
       [createProjectSelector, completeMilestoneSelector, safeMintSelector],
+      1n
+    );
+    await accessManager.setTargetFunctionRole(
+      citizenNFT,
+      [createProjectSelector, completeMilestoneSelector],
       1n
     );
 
