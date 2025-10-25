@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
-import { Container, Grid, Paper, Button } from "@mui/material";
+import { Container, Grid, Card, Button } from "@mui/material";
 import { Address, formatUnits } from "viem";
 import {
   AssignmentTurnedIn as ProjectIcon,
@@ -64,7 +64,7 @@ export function Dashboard() {
                   String(formatUnits(treasuryBudget || BigInt(0), 6))
                 ).toFixed(2)}
                 icon={<MoneyIcon sx={{ fontSize: 40, color: "white" }} />}
-                color="#10B981"
+                color="#6BCB77"
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
@@ -72,7 +72,7 @@ export function Dashboard() {
                 title="Released Funds (PYUSD)"
                 value={parseFloat(String(totalExpenses || 0)).toFixed(2)}
                 icon={<MoneyIcon sx={{ fontSize: 40, color: "white" }} />}
-                color="#3B82F6"
+                color="#4D96FF"
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
@@ -80,12 +80,11 @@ export function Dashboard() {
                 title="Total Projects"
                 value={Number(totalProjects || 0)}
                 icon={<ProjectIcon sx={{ fontSize: 40, color: "white" }} />}
-                color="#F59E0B"
+                color="#FF8C42"
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <Paper
-                elevation={2}
+              <Card
                 sx={{
                   p: 3,
                   display: "flex",
@@ -93,26 +92,26 @@ export function Dashboard() {
                   justifyContent: "center",
                   alignItems: "center",
                   gap: 2,
-                  borderRadius: 2,
                   height: "100%",
                 }}
               >
-                <BadgeIcon sx={{ fontSize: 48, color: "#8B5CF6" }} />
+                <BadgeIcon sx={{ fontSize: 48, color: "#C77DFF" }} />
                 <Button
                   variant="contained"
                   fullWidth
                   onClick={handleOpenModal}
                   disabled={!isCitizen}
                   sx={{
-                    backgroundColor: "#8B5CF6",
+                    backgroundColor: "#C77DFF",
+                    color: "#000",
                     "&:hover": {
-                      backgroundColor: "#7C3AED",
+                      backgroundColor: "#C77DFF",
                     },
                   }}
                 >
                   View Citizen ID
                 </Button>
-              </Paper>
+              </Card>
             </Grid>
           </Grid>
         </Grid>

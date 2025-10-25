@@ -1,4 +1,4 @@
-import { Box, Paper, Typography } from "@mui/material";
+import { Box, Card, Typography } from "@mui/material";
 
 interface StatCardProps {
   title: string;
@@ -16,37 +16,40 @@ export function StatCard({
   valueVariant = "h4",
 }: StatCardProps) {
   return (
-    <Paper
-      elevation={2}
+    <Card
       sx={{
         p: 3,
         display: "flex",
         alignItems: "center",
         gap: 2,
-        borderRadius: 2,
         height: "100%",
       }}
     >
       <Box
         sx={{
           backgroundColor: color,
-          borderRadius: 2,
           p: 2,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          border: "3px solid #000",
         }}
       >
         {icon}
       </Box>
       <Box sx={{ flex: 1 }}>
-        <Typography variant="body2" color="text.secondary" gutterBottom>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          gutterBottom
+          fontSize="small"
+        >
           {title}
         </Typography>
         <Typography variant={valueVariant} fontWeight="bold">
           {value}
         </Typography>
       </Box>
-    </Paper>
+    </Card>
   );
 }

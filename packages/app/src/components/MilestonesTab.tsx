@@ -337,7 +337,7 @@ export function MilestonesTab({ project, refetch }: MilestonesTabProps) {
                     label={statusLabels[milestone.status]}
                     sx={{
                       backgroundColor: statusColors[milestone.status],
-                      color: "white",
+                      color: milestone.status === MilestoneStatus.Pending ? "#000" : "white",
                       fontWeight: "bold",
                     }}
                   />

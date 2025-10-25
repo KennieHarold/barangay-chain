@@ -4,7 +4,7 @@ import { formatUnits } from "viem";
 import {
   Box,
   Typography,
-  Paper,
+  Card,
   Grid,
   Chip,
   LinearProgress,
@@ -41,7 +41,7 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
   const progress = (completedMilestones / project.milestones.length) * 100;
 
   return (
-    <Paper elevation={2} sx={{ p: 4, borderRadius: "1em" }}>
+    <Card sx={{ p: 4 }}>
       <Box sx={{ mb: 3 }}>
         <Box
           sx={{
@@ -63,7 +63,11 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
                 statusColors[
                   currentMilestone?.status || MilestoneStatus.Pending
                 ],
-              color: "white",
+              color:
+                (currentMilestone?.status || MilestoneStatus.Pending) ===
+                MilestoneStatus.Pending
+                  ? "#000"
+                  : "white",
               fontWeight: "bold",
             }}
           />
@@ -147,7 +151,15 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
               <LinearProgress
                 variant="determinate"
                 value={progress}
-                sx={{ flexGrow: 1, height: 10, borderRadius: 5 }}
+                sx={{
+                  flexGrow: 1,
+                  height: 10,
+                  borderRadius: 5,
+                  backgroundColor: "#E0E0E0",
+                  "& .MuiLinearProgress-bar": {
+                    backgroundColor: "#C77DFF",
+                  },
+                }}
               />
               <Typography
                 variant="body2"
@@ -160,6 +172,6 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
           </Box>
         </Grid>
       </Grid>
-    </Paper>
+    </Card>
   );
 }

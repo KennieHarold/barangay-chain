@@ -1,4 +1,4 @@
-import { Box, Paper, Typography } from "@mui/material";
+import { Box, Card, Typography } from "@mui/material";
 import {
   PieChart as RechartsPieChart,
   Pie,
@@ -36,7 +36,8 @@ export function ExpensesPieChart({ data }: PieChartProps) {
         fill="black"
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
-        fontSize="11px"
+        fontSize="13px"
+        fontWeight="bold"
       >
         {`${(percent * 100).toFixed(0)}%`}
       </text>
@@ -44,7 +45,7 @@ export function ExpensesPieChart({ data }: PieChartProps) {
   };
 
   return (
-    <Paper elevation={2} sx={{ p: 3, borderRadius: 2, height: "100%" }}>
+    <Card sx={{ p: 3, height: "100%" }}>
       <Typography variant="h6" fontWeight="bold" gutterBottom>
         Expenses by Category
       </Typography>
@@ -73,6 +74,8 @@ export function ExpensesPieChart({ data }: PieChartProps) {
                 label={renderCustomLabel}
                 outerRadius={70}
                 dataKey="value"
+                stroke="#000000"
+                strokeWidth={3}
               >
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -82,13 +85,13 @@ export function ExpensesPieChart({ data }: PieChartProps) {
                 formatter={(value: number) => `${value.toFixed(2)} PYUSD`}
               />
               <Legend
-                wrapperStyle={{ fontSize: "12px", marginTop: "20px" }}
-                iconSize={10}
+                wrapperStyle={{ fontSize: "13px", marginTop: "20px", fontWeight: "bold" }}
+                iconSize={12}
               />
             </RechartsPieChart>
           </ResponsiveContainer>
         </Box>
       )}
-    </Paper>
+    </Card>
   );
 }

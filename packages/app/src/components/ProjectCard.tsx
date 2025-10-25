@@ -70,13 +70,7 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        transition: "transform 0.2s, box-shadow 0.2s",
-        "&:hover": {
-          transform: "translateY(-4px)",
-          boxShadow: 6,
-        },
         cursor: "pointer",
-        borderRadius: "1em",
       }}
     >
       <CardContent sx={{ flexGrow: 1 }}>
@@ -97,7 +91,7 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
             size="small"
             sx={{
               backgroundColor: statusColors[currentMilestone.status],
-              color: "white",
+              color: currentMilestone.status === MilestoneStatus.Pending ? "#000" : "white",
             }}
           />
         </Box>
@@ -117,7 +111,15 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
             <LinearProgress
               variant="determinate"
               value={progress}
-              sx={{ flexGrow: 1, height: 8, borderRadius: 4 }}
+              sx={{
+                flexGrow: 1,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: "#E0E0E0",
+                "& .MuiLinearProgress-bar": {
+                  backgroundColor: "#C77DFF",
+                },
+              }}
             />
             <Typography variant="body2" color="text.secondary">
               {completedMilestones}/{project.milestones.length}

@@ -108,7 +108,12 @@ export function Navbar() {
 
   return mounted ? (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static" color="transparent" variant="outlined">
+      <AppBar
+        position="static"
+        color="transparent"
+        variant="outlined"
+        sx={{ borderRadius: 0 }}
+      >
         <Toolbar>
           <Typography variant="h6" component="div" fontWeight="bold">
             <Link href={"/"}>BarangayChain</Link>

@@ -10,7 +10,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
+  Card,
   Typography,
   Chip,
   LinearProgress,
@@ -91,7 +91,7 @@ export function BudgetTab({ project }: BudgetTabProps) {
 
   return (
     <Box>
-      <Paper elevation={1} sx={{ p: 3, mb: 3, borderRadius: "1em" }}>
+      <Card sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom fontWeight="bold">
           Budget Overview
         </Typography>
@@ -129,22 +129,28 @@ export function BudgetTab({ project }: BudgetTabProps) {
             <LinearProgress
               variant="determinate"
               value={releaseProgress}
-              sx={{ flexGrow: 1, height: 8, borderRadius: 4 }}
+              sx={{
+                flexGrow: 1,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: "#E0E0E0",
+                "& .MuiLinearProgress-bar": {
+                  backgroundColor: "#C77DFF",
+                },
+              }}
             />
             <Typography variant="body2" fontWeight="bold">
               {releaseProgress.toFixed(1)}%
             </Typography>
           </Box>
         </Box>
-      </Paper>
+      </Card>
 
-      <Paper elevation={1} sx={{ borderRadius: "1em" }}>
+      <Card>
         <Box
           sx={{
             p: 2,
             bgcolor: "grey.50",
-            borderTopRightRadius: "1em",
-            borderTopLeftRadius: "1em",
           }}
         >
           <Typography variant="h6" fontWeight="bold">
@@ -213,7 +219,7 @@ export function BudgetTab({ project }: BudgetTabProps) {
             </TableBody>
           </Table>
         </TableContainer>
-      </Paper>
+      </Card>
     </Box>
   );
 }

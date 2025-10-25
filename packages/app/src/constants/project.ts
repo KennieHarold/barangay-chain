@@ -1,14 +1,14 @@
 import { Category, MilestoneStatus } from "@/models";
 
 export const categoryColors: Record<Category, string> = {
-  [Category.Infrastructure]: "#2196F3",
-  [Category.Health]: "#F44336",
-  [Category.Education]: "#9C27B0",
-  [Category.Environment]: "#4CAF50",
-  [Category.Livelihood]: "#FF9800",
-  [Category.Emergency]: "#E91E63",
-  [Category.Administration]: "#607D8B",
-  [Category.CommunityEvents]: "#00BCD4",
+  [Category.Infrastructure]: "#4D96FF",
+  [Category.Health]: "#FF6B6B",
+  [Category.Education]: "#C77DFF",
+  [Category.Environment]: "#6BCB77",
+  [Category.Livelihood]: "#FFC107",
+  [Category.Emergency]: "#FF8C42",
+  [Category.Administration]: "#9D84B7",
+  [Category.CommunityEvents]: "#FF85A2",
 };
 
 export const categoryLabels: Record<Category, string> = {
@@ -23,9 +23,9 @@ export const categoryLabels: Record<Category, string> = {
 };
 
 export const statusColors: Record<MilestoneStatus, string> = {
-  [MilestoneStatus.Done]: "#4CAF50",
-  [MilestoneStatus.ForVerification]: "#FF9800",
-  [MilestoneStatus.Pending]: "#9E9E9E",
+  [MilestoneStatus.Done]: "#6BCB77",
+  [MilestoneStatus.ForVerification]: "#FF8C42",
+  [MilestoneStatus.Pending]: "#FFC107",
 };
 
 export const statusLabels: Record<MilestoneStatus, string> = {

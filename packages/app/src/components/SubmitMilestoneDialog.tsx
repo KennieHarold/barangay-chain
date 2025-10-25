@@ -13,7 +13,7 @@ import {
   FormControlLabel,
   Checkbox,
   Typography,
-  Paper,
+  Card,
 } from "@mui/material";
 
 import { UploadSectionTypes, UploadSection } from "./UploadSection";
@@ -249,8 +249,7 @@ export function SubmitMilestoneDialog({
               handleRemoveFile(index, UploadSectionTypes.Receipts)
             }
           />
-          <Paper
-            variant="outlined"
+          <Card
             sx={{
               p: 2,
               backgroundColor: allChecksPassed
@@ -303,7 +302,7 @@ export function SubmitMilestoneDialog({
                 />
               ))}
             </Box>
-          </Paper>
+          </Card>
         </Box>
       </DialogContent>
       <DialogActions>

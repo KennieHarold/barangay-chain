@@ -9,7 +9,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
+  Card,
   Typography,
   Chip,
   Alert,
@@ -49,13 +49,11 @@ export function ActivityLogsTab({ projectId }: ActivityLogsTabProps) {
         recorded on the blockchain.
       </Alert>
 
-      <Paper elevation={1} sx={{ borderRadius: "1em" }}>
+      <Card>
         <Box
           sx={{
             p: 2,
             bgcolor: "grey.50",
-            borderTopRightRadius: "1em",
-            borderTopLeftRadius: "1em",
           }}
         >
           <Typography variant="h6" fontWeight="bold">
@@ -164,7 +162,7 @@ export function ActivityLogsTab({ projectId }: ActivityLogsTabProps) {
             </Table>
           </TableContainer>
         )}
-      </Paper>
+      </Card>
     </Box>
   );
 }

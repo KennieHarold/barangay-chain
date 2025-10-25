@@ -5,7 +5,7 @@ import { Address, formatUnits } from "viem";
 import {
   Box,
   Container,
-  Paper,
+  Card,
   Typography,
   Table,
   TableBody,
@@ -58,7 +58,7 @@ export default function RegisteredContractorsPage() {
           </Typography>
         </Box>
 
-        <Paper sx={{ borderRadius: "1em", overflow: "hidden" }}>
+        <Card sx={{ overflow: "hidden" }}>
           {isLoading ? (
             <Box sx={{ display: "flex", justifyContent: "center", p: 6 }}>
               <CircularProgress size={28} />
@@ -152,7 +152,7 @@ export default function RegisteredContractorsPage() {
               </Typography>
             </Box>
           )}
-        </Paper>
+        </Card>
 
         <Box
           sx={{

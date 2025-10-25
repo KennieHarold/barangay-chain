@@ -36,8 +36,6 @@ export function CitizenIdModal({ open, onClose }: CitizenIdModalProps) {
   const cid = getCidFromUri(tokenUri || "");
   const { data: rawMetadata } = useFetchMetadataQuery(cid);
 
-  console.log(tokenId);
-
   const {
     firstName = "",
     middleName = "",
