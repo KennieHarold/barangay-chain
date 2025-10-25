@@ -126,6 +126,7 @@ export function useProjectData(id: number): {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseContractArgsToObject(args: any): { info: ProjectOnChain } | null {
   if (!args) {
     return null;

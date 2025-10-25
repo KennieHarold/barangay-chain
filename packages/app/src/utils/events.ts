@@ -30,6 +30,7 @@ export function getEventColor(event: string) {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getActorFromEventArgs(event: string, args: any) {
   switch (event) {
     case "ProjectCreated":

@@ -22,6 +22,7 @@ export function ExpensesPieChart({ data }: PieChartProps) {
     fill: categoryColors[item.category],
   }));
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderCustomLabel = (props: any) => {
     const { cx, cy, midAngle, outerRadius, percent } = props;
     const RADIAN = Math.PI / 180;

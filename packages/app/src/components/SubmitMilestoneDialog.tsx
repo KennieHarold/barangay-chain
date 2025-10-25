@@ -158,6 +158,8 @@ export function SubmitMilestoneDialog({
       const newFiles = Array.isArray(siteProgressFiles)
         ? [...siteProgressFiles]
         : [];
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       newFiles[index] = undefined as any;
 
       onSiteProgressFilesChange(newFiles.filter((f) => f !== undefined));
@@ -172,6 +174,8 @@ export function SubmitMilestoneDialog({
       setReceiptPreviews(temp);
 
       const newFiles = Array.isArray(receiptFiles) ? [...receiptFiles] : [];
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       newFiles[index] = undefined as any;
       onReceiptFilesChange(newFiles.filter((f) => f !== undefined));
     }

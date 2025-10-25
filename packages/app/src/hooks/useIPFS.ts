@@ -4,6 +4,7 @@ import { pinata } from "@/utils/config";
 
 export function useUploadJsonMutation() {
   return useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: async (data: any) => {
       const response = await fetch("/api/ipfs/upload-json", {
         method: "POST",
