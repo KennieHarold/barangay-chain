@@ -153,7 +153,7 @@ export function useHasUserVoted(
 ) {
   return useReadContract({
     ...baseContractArgs,
-    functionName: "getUserMilestoneVerification",
+    functionName: "isUserAlreadyVoted",
     args: [BigInt(projectId), milestoneIdx, userAddress],
     query: {
       enabled:
