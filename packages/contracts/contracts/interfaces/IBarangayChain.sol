@@ -216,7 +216,7 @@ interface IBarangayChain {
      * @param citizen Address of the citizen
      * @return bool true if citizen has voted
      */
-    function getUserMilestoneVerification(
+    function isUserAlreadyVoted(
         uint256 projectId,
         uint8 milestoneIdx,
         address citizen

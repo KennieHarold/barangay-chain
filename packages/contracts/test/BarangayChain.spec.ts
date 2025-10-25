@@ -355,8 +355,7 @@ describe("BarangayChain", function () {
         .to.emit(barangayChain, "MilestoneVerified")
         .withArgs(1n, 0n, alice, true, 1n, 0n);
 
-      expect(await barangayChain.getUserMilestoneVerification(1n, 0n, alice)).to
-        .be.true;
+      expect(await barangayChain.isUserAlreadyVoted(1n, 0n, alice)).to.be.true;
 
       const milestone = [1n, 0n, TEST_METADATA_URI, 6000n, 0n, false, 1n];
       expect(await barangayChain.getProjectMilestone(1n, 0n)).to.be.eqls(

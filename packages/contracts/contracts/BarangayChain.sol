@@ -44,7 +44,7 @@ contract BarangayChain is IBarangayChain, AccessManaged {
     /// @notice Mapping of project ID to total amount of funds released
     mapping(uint256 projectId => uint256 amount) public amountFundsReleased;
     /// @notice Mapping of verification key to user's consensus vote (true=upvote, false=downvote)
-    mapping(bytes32 key => bool consensus) private userVerifications;
+    mapping(bytes32 key => bool) private hasVoted;
     /// @notice Mapping of vendor ID to Vendor details
     mapping(uint256 vendorId => Vendor) public vendors;
 
@@ -270,7 +270,7 @@ contract BarangayChain is IBarangayChain, AccessManaged {
 
         bytes32 verificationKey = _packKey(projectId, index, msg.sender);
         require(
-            !userVerifications[verificationKey],
+            !hasVoted[verificationKey],
             "BarangayChain::verifyMilestone: Already verified"
         );
 
@@ -280,7 +280,7 @@ contract BarangayChain is IBarangayChain, AccessManaged {
             milestone.downvotes = milestone.downvotes + 1;
         }
 
-        userVerifications[verificationKey] = consensus;
+        hasVoted[verificationKey] = true;
 
         emit MilestoneVerified(
             projectId,
@@ -431,13 +431,13 @@ contract BarangayChain is IBarangayChain, AccessManaged {
      * @param citizen Address of the citizen
      * @return bool true if citizen has voted (either upvote or downvote), false otherwise
      */
-    function getUserMilestoneVerification(
+    function isUserAlreadyVoted(
         uint256 projectId,
         uint8 milestoneIdx,
         address citizen
     ) external view returns (bool) {
         bytes32 verificationKey = _packKey(projectId, milestoneIdx, citizen);
-        return userVerifications[verificationKey];
+        return hasVoted[verificationKey];
     }
 
     /**
