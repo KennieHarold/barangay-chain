@@ -85,7 +85,7 @@ export const schema: yup.ObjectSchema<ProjectFormData> = yup.object({
         }
         const total = milestones.reduce(
           (sum: number, milestone) =>
-            sum + (parseInt(milestone?.percentage?.toString()) || 0),
+            sum + (parseFloat(milestone?.percentage?.toString()) || 0),
           0
         );
         return Math.abs(total - 100) < 0.01; // Allow small floating point errors

@@ -98,15 +98,12 @@ export default function CreateProjectPage() {
   });
 
   const milestones = watch("milestones");
-  const totalPercentage = useMemo(() => {
-    return (
-      milestones?.reduce(
-        (sum, milestone) =>
-          sum + (parseInt(milestone.percentage.toString()) || 0),
-        0
-      ) || 0
-    );
-  }, [milestones]);
+  const totalPercentage =
+    milestones?.reduce(
+      (sum, milestone) =>
+        sum + (parseFloat(milestone.percentage.toString()) || 0),
+      0
+    ) || 0;
 
   const handleAddMilestone = () => {
     // Insert new milestone before the second-to-last (0%) milestone
@@ -416,7 +413,11 @@ export default function CreateProjectPage() {
                     </Typography>
                   </Box>
                   <Chip
-                    label={`Total: ${totalPercentage.toFixed(1)}%`}
+                    label={`Total: ${
+                      totalPercentage > 100
+                        ? ">100"
+                        : totalPercentage.toFixed(1)
+                    }%`}
                     color={
                       Math.abs(totalPercentage - 100) < 0.01
                         ? "success"
