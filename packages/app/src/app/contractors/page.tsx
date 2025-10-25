@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Address } from "viem";
+import { Address, formatUnits } from "viem";
 import {
   Box,
   Container,
@@ -123,7 +123,7 @@ export default function RegisteredContractorsPage() {
                           fontWeight="medium"
                           color="success.main"
                         >
-                          {contractor.totalDisbursement} PYUSD
+                          {formatUnits(contractor.totalDisbursement, 6)} PYUSD
                         </Typography>
                       </TableCell>
                       <TableCell align="center">
