@@ -1,4 +1,4 @@
-import { Address } from "viem";
+import { Address, isAddress } from "viem";
 import {
   useReadContract,
   useWaitForTransactionReceipt,
@@ -47,6 +47,18 @@ export function useTokenUri(tokenId: number) {
     args: [BigInt(tokenId)],
     query: {
       enabled: tokenId !== undefined && typeof tokenId === "number",
+    },
+  });
+}
+
+export function useTokenOfOwnerByIndex(address: Address, index: number) {
+  return useReadContract({
+    ...baseContractArgs,
+    functionName: "tokenOfOwnerByIndex",
+    args: [address, BigInt(index)],
+    query: {
+      enabled:
+        index !== undefined && typeof index === "number" && isAddress(address),
     },
   });
 }

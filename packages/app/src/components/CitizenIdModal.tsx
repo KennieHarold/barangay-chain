@@ -10,7 +10,7 @@ import {
 import { useAccount } from "wagmi";
 import { Close as CloseIcon } from "@mui/icons-material";
 
-import { useTokenUri } from "@/hooks/useCitizenNFT";
+import { useTokenOfOwnerByIndex, useTokenUri } from "@/hooks/useCitizenNFT";
 import { getCidFromUri } from "@/utils/format";
 import { useFetchMetadataQuery } from "@/hooks/useIPFS";
 
@@ -30,10 +30,13 @@ interface IPFSMetadata {
 
 export function CitizenIdModal({ open, onClose }: CitizenIdModalProps) {
   const { address: walletAddress } = useAccount();
-  const { data: tokenUri } = useTokenUri(0); // todo: Get actual token id
+  const { data: tokenId } = useTokenOfOwnerByIndex(walletAddress || "0x", 0);
+  const { data: tokenUri } = useTokenUri(Number(tokenId) || 0);
 
   const cid = getCidFromUri(tokenUri || "");
   const { data: rawMetadata } = useFetchMetadataQuery(cid);
+
+  console.log(tokenId);
 
   const {
     firstName = "",
@@ -172,6 +175,28 @@ export function CitizenIdModal({ open, onClose }: CitizenIdModalProps) {
                       gap: 2,
                     }}
                   >
+                    <Box>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: "text.secondary",
+                          textTransform: "uppercase",
+                          fontSize: "0.7rem",
+                          fontWeight: 600,
+                          letterSpacing: 0.5,
+                        }}
+                      >
+                        ID Number
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ fontWeight: 500, color: "text.primary" }}
+                      >
+                        {tokenId !== undefined
+                          ? `CZNFT-${Number(tokenId)}`
+                          : "N/A"}
+                      </Typography>
+                    </Box>
                     <Box>
                       <Typography
                         variant="caption"
