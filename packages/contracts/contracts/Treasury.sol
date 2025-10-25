@@ -9,7 +9,6 @@ import "./interfaces/ITreasury.sol";
 
 /**
  * @title Treasury
- * @author Barangay Chain Team
  * @notice Manages barangay treasury funds with category-based budget allocations
  * @dev Implements AccessManaged for role-based access control and enforces allocation limits per category
  */

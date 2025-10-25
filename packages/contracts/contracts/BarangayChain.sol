@@ -121,6 +121,10 @@ contract BarangayChain is IBarangayChain, AccessManaged {
             proposer != address(0),
             "BarangayChain::createProject: Invalid proposer address"
         );
+        require(
+            startDate < endDate,
+            "BarangayChain::createProject: Start date should be earlier than end date"
+        );
 
         uint256 sum = 0;
         for (uint8 i = 0; i < releaseBpsTemplate.length; i++) {
@@ -158,6 +162,11 @@ contract BarangayChain is IBarangayChain, AccessManaged {
         project.currentMilestone = 0;
         project.metadataURI = uri;
 
+        // @dev: The releaseBps assignment shifts payment timing to ensure proper fund distribution:
+        // - Milestone 0 gets paid upfront (advance payment calculated above)
+        // - Milestones 1 to N-2 get paid when completed using the NEXT milestone's percentage
+        // - Milestone N-1 (second to last) gets 0% when completed
+        // - Milestone N (last) gets its own percentage when completed (final payment)
         for (uint8 i = 0; i < releaseBpsTemplate.length; i++) {
             uint16 releaseBps = 0;
 

@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/access/manager/AccessManager.sol";
 
 /**
  * @title BarangayAccessManager
- * @author Barangay Chain Team
  * @notice Manages role-based access control for the barangay system
  * @dev Extends OpenZeppelin's AccessManager with predefined roles
  */
