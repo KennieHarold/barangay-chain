@@ -91,7 +91,7 @@ export function BudgetTab({ project }: BudgetTabProps) {
 
   return (
     <Box>
-      <Paper elevation={1} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
+      <Paper elevation={1} sx={{ p: 3, mb: 3, borderRadius: "1em" }}>
         <Typography variant="h6" gutterBottom fontWeight="bold">
           Budget Overview
         </Typography>
@@ -138,8 +138,15 @@ export function BudgetTab({ project }: BudgetTabProps) {
         </Box>
       </Paper>
 
-      <Paper elevation={1} sx={{ borderRadius: 2 }}>
-        <Box sx={{ p: 2 }}>
+      <Paper elevation={1} sx={{ borderRadius: "1em" }}>
+        <Box
+          sx={{
+            p: 2,
+            bgcolor: "grey.50",
+            borderTopRightRadius: "1em",
+            borderTopLeftRadius: "1em",
+          }}
+        >
           <Typography variant="h6" fontWeight="bold">
             Fund Release Schedule
           </Typography>
@@ -167,15 +174,7 @@ export function BudgetTab({ project }: BudgetTabProps) {
             </TableHead>
             <TableBody>
               {budgetSchedule.map((item, index) => (
-                <TableRow
-                  key={`milestone-actual-index-${index}`}
-                  sx={{
-                    backgroundColor: item.isReleased
-                      ? "success.light"
-                      : "inherit",
-                    opacity: item.isReleased ? 0.8 : 1,
-                  }}
-                >
+                <TableRow key={`milestone-actual-index-${index}`}>
                   <TableCell>
                     <Typography fontWeight="medium">{item.label}</Typography>
                   </TableCell>

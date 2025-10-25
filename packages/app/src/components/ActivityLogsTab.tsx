@@ -49,8 +49,15 @@ export function ActivityLogsTab({ projectId }: ActivityLogsTabProps) {
         recorded on the blockchain.
       </Alert>
 
-      <Paper elevation={1} sx={{ borderRadius: 2 }}>
-        <Box sx={{ p: 2 }}>
+      <Paper elevation={1} sx={{ borderRadius: "1em" }}>
+        <Box
+          sx={{
+            p: 2,
+            bgcolor: "grey.50",
+            borderTopRightRadius: "1em",
+            borderTopLeftRadius: "1em",
+          }}
+        >
           <Typography variant="h6" fontWeight="bold">
             Project Activity
           </Typography>

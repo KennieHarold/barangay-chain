@@ -31,7 +31,6 @@ export function Dashboard() {
   const [openModal, setOpenModal] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const activeProjects = 8;
   const isCitizen = BigInt(nftBalance || 0) > BigInt(0);
 
   const handleOpenModal = () => {
@@ -52,7 +51,7 @@ export function Dashboard() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Grid container spacing={3} paddingX={12}>
+      <Grid container spacing={3} paddingX={{ xs: 2, sm: 4, md: 2, lg: 12 }}>
         <Grid size={{ xs: 12, md: 6 }}>
           <ExpensesPieChart data={expensesByCategory} />
         </Grid>
@@ -60,7 +59,7 @@ export function Dashboard() {
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 6 }}>
               <StatCard
-                title="Treasury Remaining Budget (PYUSD)"
+                title="Budget Left (PYUSD)"
                 value={parseFloat(
                   String(formatUnits(treasuryBudget || BigInt(0), 6))
                 ).toFixed(2)}
@@ -70,7 +69,7 @@ export function Dashboard() {
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <StatCard
-                title="Total Released Funds (PYUSD)"
+                title="Released Funds (PYUSD)"
                 value={parseFloat(String(totalExpenses || 0)).toFixed(2)}
                 icon={<MoneyIcon sx={{ fontSize: 40, color: "white" }} />}
                 color="#3B82F6"

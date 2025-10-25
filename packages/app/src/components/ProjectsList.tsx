@@ -29,7 +29,7 @@ export function ProjectsList() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4, paddingX: 12 }}>
+      <Box sx={{ mb: 4, paddingX: { xs: 2, sm: 2, md: 2, lg: 12 } }}>
         <Typography variant="h5" fontWeight="bold">
           Active Projects
         </Typography>
@@ -51,7 +51,7 @@ export function ProjectsList() {
           sx={{
             textAlign: "center",
             py: 8,
-            paddingX: 12,
+            paddingX: { xs: 2, sm: 4, md: 8, lg: 12 },
           }}
         >
           <Box
@@ -67,7 +67,7 @@ export function ProjectsList() {
           </Box>
         </Box>
       ) : (
-        <Grid container spacing={3} paddingX={12}>
+        <Grid container spacing={3} paddingX={{ xs: 2, sm: 2, md: 2, lg: 12 }}>
           {projectIds.map((id) => (
             <Grid key={id} size={{ md: 4 }}>
               <ProjectCard projectId={id} />

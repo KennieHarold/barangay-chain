@@ -41,7 +41,7 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
   const progress = (completedMilestones / project.milestones.length) * 100;
 
   return (
-    <Paper elevation={2} sx={{ p: 4, borderRadius: 2 }}>
+    <Paper elevation={2} sx={{ p: 4, borderRadius: "1em" }}>
       <Box sx={{ mb: 3 }}>
         <Box
           sx={{
