@@ -66,14 +66,14 @@ export function ExpensesPieChart({ data }: PieChartProps) {
       ) : (
         <Box sx={{ height: "calc(100% - 40px)" }}>
           <ResponsiveContainer width="100%" height="100%">
-            <RechartsPieChart>
+            <RechartsPieChart margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
               <Pie
                 data={chartData}
                 cx="50%"
                 cy="50%"
                 labelLine={true}
                 label={renderCustomLabel}
-                outerRadius={70}
+                outerRadius={63}
                 dataKey="value"
                 stroke="#000000"
                 strokeWidth={3}
@@ -86,7 +86,10 @@ export function ExpensesPieChart({ data }: PieChartProps) {
                 formatter={(value: number) => `${value.toFixed(2)} PYUSD`}
               />
               <Legend
-                wrapperStyle={{ fontSize: "13px", marginTop: "20px", fontWeight: "bold" }}
+                wrapperStyle={{
+                  fontSize: "13px",
+                  fontWeight: "bold",
+                }}
                 iconSize={12}
               />
             </RechartsPieChart>
