@@ -20,7 +20,7 @@ export function getEventColor(event: string) {
     case "ProjectCreated":
       return "primary";
     case "MilestoneSubmitted":
-      return "info";
+      return "primary";
     case "MilestoneVerified":
       return "success";
     case "MilestoneCompleted":
